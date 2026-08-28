@@ -10,7 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+JP:wght@400;600;700&family=Shippori+Mincho:wght@600;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="/client/style.css" />
+    <link rel="stylesheet" href="/client/css/style.css" />
   </head>
   <body>
     <header class="top">
@@ -26,9 +26,10 @@
           </button>
         </div>
         <p id="subtitle" class="subtitle">過去の在室記録を表示します</p>
-        <p class="nav-links">
-          <a href="/">リアルタイム在室管理を開く</a>
-        </p>
+        <nav class="nav-actions" aria-label="画面切替">
+          <a class="nav-btn" href="/">在室管理</a>
+          <a class="nav-btn" href="/members">メンバー</a>
+        </nav>
       </div>
       <div class="top-right">
         <p id="clock-date" class="clock-date">—</p>
@@ -38,7 +39,8 @@
 
     <main id="boards" class="boards" aria-live="polite"></main>
 
-    <script src="/client/grades.js"></script>
-    <script src="/client/history.js"></script>
+    <script src="/client/js/shared/display.js"></script>
+    <script src="/client/js/shared/grades.js"></script>
+    <script src="/client/js/history/history.js"></script>
   </body>
 </html>

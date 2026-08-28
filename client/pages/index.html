@@ -10,21 +10,22 @@
       href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+JP:wght@400;600;700&family=Shippori+Mincho:wght@600;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="/client/style.css" />
+    <link rel="stylesheet" href="/client/css/style.css" />
   </head>
   <body>
     <header class="top">
       <div class="top-left">
-        <h1 class="title">自動在室管理</h1>
-        <p id="subtitle" class="subtitle">最終更新: - ／ 次の確認: -</p>
+        <h1 class="title">在室管理</h1>
+        <p id="subtitle" class="subtitle">最終更新: - </p>
         <p id="public-url" class="public-url" hidden>
           公開URL:
           <a id="public-url-link" href="#" target="_blank" rel="noopener noreferrer"></a>
         </p>
         <p id="rules" class="rules">ルールを読み込み中…</p>
-        <p class="nav-links">
-          <a href="/history">過去の在室履歴を開く</a>
-        </p>
+        <nav class="nav-actions" aria-label="画面切替">
+          <a class="nav-btn" href="/history">在室履歴</a>
+          <a class="nav-btn" href="/members">メンバー</a>
+        </nav>
       </div>
       <div class="top-right">
         <p id="clock-date" class="clock-date">—</p>
@@ -34,7 +35,8 @@
 
     <main id="boards" class="boards" aria-live="polite"></main>
 
-    <script src="/client/grades.js"></script>
-    <script src="/client/app.js"></script>
+    <script src="/client/js/shared/display.js"></script>
+    <script src="/client/js/shared/grades.js"></script>
+    <script src="/client/js/attendance/app.js"></script>
   </body>
 </html>

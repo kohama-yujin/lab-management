@@ -14,42 +14,7 @@ const els = {
   boards: document.getElementById("boards"),
 };
 
-function dash(value) {
-  return value == null || value === "" ? "-" : String(value);
-}
-
-function formatClock() {
-  const now = new Date();
-  els.clockDate.textContent = now.toLocaleDateString("ja-JP", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    weekday: "short",
-  });
-  els.clockTime.textContent = now.toLocaleTimeString("ja-JP", {
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-  });
-}
-
-function formatTime(iso) {
-  if (!iso) return "-";
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "-";
-  return d.toLocaleTimeString("ja-JP", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
-function formatDuration(seconds) {
-  const s = Math.max(0, Number(seconds) || 0);
-  const h = Math.floor(s / 3600);
-  const m = Math.floor((s % 3600) / 60);
-  if (s >= 3600) return `${h}時間${m}分`;
-  return `${m}分`;
-}
+const { dash, formatTime, formatDuration } = DisplayUtils;
 
 function setSubtitle(status) {
   const updated = new Date().toLocaleTimeString("ja-JP", {
@@ -76,7 +41,6 @@ function setPublicUrl(status) {
 
 function formatRules(_status) {
   return (
-    "在室通知（POST /attendance_start）で在室、不在通知（POST /attendance_end）で不在とします。\n" +
     "総在室時間は在室中に加算し、不在通知時に確定します。"
   );
 }
@@ -167,8 +131,7 @@ async function watch() {
 }
 
 async function boot() {
-  formatClock();
-  setInterval(formatClock, 1000);
+  DisplayUtils.startClock(els.clockDate, els.clockTime);
   try {
     await GradeConfig.ensureLoaded();
   } catch (err) {

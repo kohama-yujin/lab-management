@@ -1,0 +1,71 @@
+<dialog id="edit-dialog" class="member-dialog" aria-labelledby="edit-dialog-title">
+  <form id="edit-form" method="dialog" class="member-form">
+    <h2 id="edit-dialog-title" class="dialog-title">メンバー編集</h2>
+    <p id="edit-error" class="form-error" hidden></p>
+    <input type="hidden" name="member_id" />
+
+    <label class="form-field">
+      <span class="form-label">名前</span>
+      <input type="text" name="name" required autocomplete="name" />
+    </label>
+
+    <label class="form-field">
+      <span class="form-label">学年</span>
+      <select name="grade" required></select>
+    </label>
+
+    <label class="form-field">
+      <span class="form-label">役職</span>
+      <select name="role" required></select>
+    </label>
+
+    <label class="form-field">
+      <span class="form-label">username</span>
+      <input type="text" name="username" required autocomplete="username" />
+    </label>
+
+    <label class="form-field">
+      <span class="form-label">password</span>
+      <input
+        type="password"
+        name="password"
+        autocomplete="new-password"
+        placeholder="変更する場合のみ入力"
+      />
+    </label>
+
+    <label class="form-field">
+      <span class="form-label">password（確認）</span>
+      <input
+        type="password"
+        name="password_confirm"
+        autocomplete="new-password"
+        placeholder="変更する場合のみ入力"
+      />
+    </label>
+
+    <div class="form-field graduation-field">
+      <label class="form-field-inline">
+        <span class="form-label-inline">卒業済み：</span>
+        <input type="checkbox" name="graduated" />
+      </label>
+      <label class="form-field-inline">
+        <span class="form-label-inline">卒業年度：</span>
+        <input
+          type="number"
+          name="graduation_year"
+          min="2000"
+          max="2100"
+          step="1"
+          placeholder="例: 2026"
+          disabled
+        />
+      </label>
+    </div>
+
+    <div class="dialog-actions">
+      <button type="button" class="dialog-btn" data-close-dialog>キャンセル</button>
+      <button type="submit" class="dialog-btn dialog-btn-primary">保存</button>
+    </div>
+  </form>
+</dialog>

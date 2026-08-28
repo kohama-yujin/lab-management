@@ -13,53 +13,7 @@ let dates = [];
 /** @type {number} index into dates */
 let dateIndex = 0;
 
-function dash(value) {
-  return value == null || value === "" ? "-" : String(value);
-}
-
-function formatClock() {
-  const now = new Date();
-  els.clockDate.textContent = now.toLocaleDateString("ja-JP", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    weekday: "short",
-  });
-  els.clockTime.textContent = now.toLocaleTimeString("ja-JP", {
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-  });
-}
-
-function formatDayLabel(isoDay) {
-  const d = new Date(`${isoDay}T12:00:00`);
-  if (Number.isNaN(d.getTime())) return isoDay;
-  return d.toLocaleDateString("ja-JP", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    weekday: "short",
-  });
-}
-
-function formatTime(iso) {
-  if (!iso) return "-";
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "-";
-  return d.toLocaleTimeString("ja-JP", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
-function formatDuration(seconds) {
-  const s = Math.max(0, Number(seconds) || 0);
-  const h = Math.floor(s / 3600);
-  const m = Math.floor((s % 3600) / 60);
-  if (s >= 3600) return `${h}時間${m}分`;
-  return `${m}分`;
-}
+const { dash, formatTime, formatDuration, formatDayLabel } = DisplayUtils;
 
 function presenceView(t) {
   if (!t.present) {
@@ -177,6 +131,5 @@ els.nextDay.addEventListener("click", () => {
   loadDay();
 });
 
-formatClock();
-setInterval(formatClock, 1000);
+DisplayUtils.startClock(els.clockDate, els.clockTime);
 init();

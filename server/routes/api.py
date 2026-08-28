@@ -6,6 +6,7 @@ from fastapi.responses import JSONResponse, PlainTextResponse
 
 from server.config import load_api_key, load_public_tunnel_url
 from server.grade_store import get_grade_order
+from server.role_store import get_roles
 
 api_router = APIRouter()
 
@@ -89,6 +90,11 @@ def health() -> PlainTextResponse:
 @api_router.get("/get_grade")
 def get_grade() -> dict[str, list[str]]:
     return {"grades": get_grade_order()}
+
+
+@api_router.get("/get_role")
+def get_role() -> dict[str, list[dict[str, str]]]:
+    return {"roles": get_roles()}
 
 
 @api_router.get("/status")

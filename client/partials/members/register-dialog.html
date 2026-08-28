@@ -1,0 +1,41 @@
+<dialog id="register-dialog" class="member-dialog" aria-labelledby="register-dialog-title">
+  <form id="register-form" method="dialog" class="member-form">
+    <h2 id="register-dialog-title" class="dialog-title">メンバー登録</h2>
+    <p id="register-error" class="form-error" hidden></p>
+
+    <label class="form-field">
+      <span class="form-label">名前</span>
+      <input type="text" name="name" required autocomplete="name" />
+    </label>
+
+    <label class="form-field">
+      <span class="form-label">学年</span>
+      <select name="grade" required></select>
+    </label>
+
+    <label class="form-field">
+      <span class="form-label">役職</span>
+      <select name="role" required></select>
+    </label>
+
+    <label class="form-field">
+      <span class="form-label">username</span>
+      <input type="text" name="username" required autocomplete="username" />
+    </label>
+
+    <label class="form-field">
+      <span class="form-label">password</span>
+      <input type="password" name="password" required autocomplete="new-password" />
+    </label>
+
+    <label class="form-field">
+      <span class="form-label">password（確認）</span>
+      <input type="password" name="password_confirm" required autocomplete="new-password" />
+    </label>
+
+    <div class="dialog-actions">
+      <button type="button" class="dialog-btn" data-close-dialog>キャンセル</button>
+      <button type="submit" class="dialog-btn dialog-btn-primary">登録</button>
+    </div>
+  </form>
+</dialog>
