@@ -1,0 +1,9 @@
+.venv/
+__pycache__/
+
+AGENTS.md
+agent-responses/
+
+api_key.json
+data/
+tools/*.exe
