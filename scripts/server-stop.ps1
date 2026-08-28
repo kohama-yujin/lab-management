@@ -1,7 +1,7 @@
 ﻿#Requires -Version 5.1
 <#
 .SYNOPSIS
-  start.ps1 で起動した在室管理と cloudflared を停止する。
+  server-start.ps1 で起動した在室管理と cloudflared を停止する。
 #>
 $ErrorActionPreference = "Continue"
 
