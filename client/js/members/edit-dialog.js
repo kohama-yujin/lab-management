@@ -9,6 +9,7 @@ const EditDialog = {
     this.error = document.getElementById("edit-error");
 
     MemberFormUtils.wireCloseButtons(this.dialog);
+    MemberFormUtils.wireBackdropClose(this.dialog);
     this.wireGraduationToggle();
     this.form.addEventListener("submit", (event) => this.handleSubmit(event));
   },

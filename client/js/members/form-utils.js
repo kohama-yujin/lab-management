@@ -63,4 +63,13 @@ const MemberFormUtils = {
       });
     });
   },
+
+  /** モーダル背景（::backdrop）クリックでダイアログを閉じる */
+  wireBackdropClose(dialog) {
+    dialog.addEventListener("click", (event) => {
+      if (event.target === dialog) {
+        this.closeDialog(dialog);
+      }
+    });
+  },
 };

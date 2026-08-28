@@ -9,6 +9,7 @@ const RegisterDialog = {
     this.error = document.getElementById("register-error");
 
     MemberFormUtils.wireCloseButtons(this.dialog);
+    MemberFormUtils.wireBackdropClose(this.dialog);
     this.form.addEventListener("submit", (event) => this.handleSubmit(event));
   },
 
