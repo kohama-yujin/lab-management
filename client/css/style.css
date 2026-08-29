@@ -577,15 +577,38 @@ body {
     display: none;
   }
 
-  .board {
-    overflow-x: auto;
+  .title {
+    font-size: clamp(1.5rem, 3vw, 2rem);
+  }
+  
+  .subtitle {
+    font-size: 0.8rem;
+  }
+  
+  .public-url {
+    font-size: 0.8rem;
   }
 
-  .board .col-username {
+  .rules {
+    font-size: 0.7rem;
+  }
+
+  .board {
+    overflow-x: auto;
+    padding: 0.5rem 0.75rem 0.75rem;
+  }
+
+  .board .col-username, .board .col-arrived, .board .col-left {
     display: none;
   }
 
   .board[data-grade="graduated"] .col-role {
     display: none;
+  }
+
+  .board-title {
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
   }
 }

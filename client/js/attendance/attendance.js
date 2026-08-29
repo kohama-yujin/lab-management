@@ -41,7 +41,7 @@ function setPublicUrl(status) {
 
 function formatRules(_status) {
   return (
-    "総在室時間は在室中に加算し、不在通知時に確定します。"
+    ""
   );
 }
 
@@ -73,9 +73,9 @@ function renderBoards(status) {
               <thead>
                 <tr>
                   <th>状態</th>
-                  <th>氏名</th>
-                  <th>到着</th>
-                  <th>帰宅</th>
+                  <th>名前</th>
+                  <th class="col-arrived">到着</th>
+                  <th class="col-left">帰宅</th>
                   <th>総在室</th>
                 </tr>
               </thead>
@@ -83,11 +83,15 @@ function renderBoards(status) {
                 ${rows
                   .map((t) => {
                     const view = presenceView(t);
+                    const arrived = formatTime(t.arrived_at);
+                    const left = t.left_at_is_end_of_day
+                      ? "24:00"
+                      : formatTime(t.left_at);
                     return `<tr class="${view.rowClass}">
                       <td class="${view.statusClass}">${view.label}</td>
                       <td>${dash(t.name)}</td>
-                      <td>${formatTime(t.arrived_at)}</td>
-                      <td>${formatTime(t.left_at)}</td>
+                      <td class="col-arrived">${arrived}</td>
+                      <td class="col-left">${left}</td>
                       <td>${formatDuration(t.total_present_seconds)}</td>
                     </tr>`;
                   })
@@ -113,7 +117,7 @@ async function watch() {
     // 公開 URL は revision と独立に変わる（トンネル起動後）ので毎回更新
     setPublicUrl(status);
 
-    // 初回、または アプリ更新・接続などで revision が変わったときだけ描画
+    // 初回、または revision 変化（入退室・1分経過）のとき描画
     if (lastRevision === null || revision !== lastRevision) {
       lastRevision = revision;
       renderBoards(status);

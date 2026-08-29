@@ -7,6 +7,7 @@ from typing import TypedDict
 
 from server.db import StoreError, connect, is_unique_violation
 from server.password_utils import verify_password
+from server.stores.member import _fetch_member
 
 logger = logging.getLogger(__name__)
 
@@ -46,6 +47,9 @@ def start_attendance(username: str, password: str) -> AttendanceResult:
         with connect() as conn:
             with conn.cursor() as cur:
                 member_id = _authenticate(cur, username, password)
+                member = _fetch_member(cur, member_id)
+                if member["graduation_year"] is not None:
+                    raise StoreError("このユーザーは卒業しています", 400)
 
                 cur.execute(
                     """

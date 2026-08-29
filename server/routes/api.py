@@ -10,6 +10,7 @@ from server.stores import attendance as attendance_store
 from server.stores.grade import get_grade_order
 from server.stores.member import create_member, list_active_members, list_graduated_members, update_member
 from server.stores.role import get_roles
+from server.stores.status import get_today_status
 
 api_router = APIRouter()
 
@@ -178,8 +179,10 @@ async def members_update(member_id: int, request: Request) -> dict[str, Any]:
 
 @api_router.get("/status")
 def status() -> dict[str, Any]:
-    # return get_status()
-    return _empty_status_payload()
+    """当日（JST）の在室ボード。"""
+    payload = get_today_status()
+    payload["public_url"] = load_public_tunnel_url()
+    return payload
 
 
 @api_router.get("/history/dates")
