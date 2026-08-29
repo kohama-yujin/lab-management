@@ -60,16 +60,67 @@ const EditDialog = {
       return;
     }
 
+    let graduationYear = null;
     if (this.form.elements.graduated.checked) {
       const year = Number(this.form.elements.graduation_year.value);
       if (!Number.isInteger(year) || year < 2000 || year > 2100) {
         MemberFormUtils.showError(this.error, "卒業年度を正しく入力してください");
         return;
       }
+      graduationYear = year;
     }
 
     MemberFormUtils.showError(this.error, null);
-    // API 未接続: 更新処理は後続タスクで実装
-    MemberFormUtils.closeDialog(this.dialog);
+    void this.submitForm({
+      memberId: Number(this.form.elements.member_id.value),
+      name: this.form.elements.name.value,
+      grade: this.form.elements.grade.value,
+      role: this.form.elements.role.value,
+      username: this.form.elements.username.value,
+      password: password || null,
+      graduation_year: graduationYear,
+    });
+  },
+
+  async submitForm(payload) {
+    const submitButton = this.form.querySelector('[type="submit"]');
+    if (submitButton) {
+      submitButton.disabled = true;
+    }
+
+    try {
+      const body = {
+        name: payload.name,
+        grade: payload.grade,
+        role: payload.role,
+        username: payload.username,
+        graduation_year: payload.graduation_year,
+      };
+      if (payload.password) {
+        body.password = payload.password;
+      }
+
+      const res = await fetch(`/members/${payload.memberId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) {
+        const message = await ApiUtils.parseError(res);
+        MemberFormUtils.showError(this.error, message);
+        return;
+      }
+
+      MemberFormUtils.closeDialog(this.dialog);
+      if (window.MemberPage?.reload) {
+        await window.MemberPage.reload();
+      }
+    } catch (err) {
+      MemberFormUtils.showError(this.error, err.message || "更新に失敗しました");
+    } finally {
+      if (submitButton) {
+        submitButton.disabled = false;
+      }
+    }
   },
 };

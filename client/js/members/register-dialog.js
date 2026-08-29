@@ -37,7 +37,43 @@ const RegisterDialog = {
     }
 
     MemberFormUtils.showError(this.error, null);
-    // API 未接続: 登録処理は後続タスクで実装
-    MemberFormUtils.closeDialog(this.dialog);
+    void this.submitForm({
+      name: this.form.elements.name.value,
+      grade: this.form.elements.grade.value,
+      role: this.form.elements.role.value,
+      username: this.form.elements.username.value,
+      password,
+    });
+  },
+
+  async submitForm(payload) {
+    const submitButton = this.form.querySelector('[type="submit"]');
+    if (submitButton) {
+      submitButton.disabled = true;
+    }
+
+    try {
+      const res = await fetch("/members", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) {
+        const message = await ApiUtils.parseError(res);
+        MemberFormUtils.showError(this.error, message);
+        return;
+      }
+
+      MemberFormUtils.closeDialog(this.dialog);
+      if (window.MemberPage?.reload) {
+        await window.MemberPage.reload();
+      }
+    } catch (err) {
+      MemberFormUtils.showError(this.error, err.message || "登録に失敗しました");
+    } finally {
+      if (submitButton) {
+        submitButton.disabled = false;
+      }
+    }
   },
 };

@@ -25,8 +25,27 @@ const graduatedState = {
 
 const { dash } = DisplayUtils;
 
-/** @type {Member[]} API 未接続のため当面はモック。将来 GET /members で取得する。 */
+/** @type {Member[]} */
 let members = [];
+
+async function fetchActiveMembers() {
+  const res = await fetch("/members/list", { cache: "no-store" });
+  if (!res.ok) {
+    throw new Error(await ApiUtils.parseError(res));
+  }
+  const data = await res.json();
+  members = Array.isArray(data.members) ? data.members : [];
+}
+
+async function reloadAllMembers() {
+  await fetchActiveMembers();
+  await fetchGraduatedMembers();
+  renderBoards();
+}
+
+window.MemberPage = {
+  reload: reloadAllMembers,
+};
 
 function isActive(member) {
   return member.graduation_year == null;
@@ -53,31 +72,29 @@ function compareGraduated(a, b) {
 }
 
 /**
- * 卒業済みメンバーをページ取得する。API 実装後は GET /members?graduated=1&offset=&limit= に差し替える。
+ * 卒業済みメンバーをページ取得する。
  * @param {number} offset
  * @param {number} limit
  * @returns {Promise<{ items: Member[], total: number }>}
  */
 async function fetchGraduatedPage(offset, limit) {
-  // const res = await fetch(
-  //   `/members?graduated=1&offset=${offset}&limit=${limit}`,
-  //   { cache: "no-store" }
-  // );
-  // if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  // const data = await res.json();
-  // return {
-  //   items: Array.isArray(data.members) ? data.members : [],
-  //   total: Number(data.total) || 0,
-  // };
-
-  const all = members.filter((member) => !isActive(member)).sort(compareGraduated);
+  const params = new URLSearchParams({
+    graduated: "1",
+    offset: String(offset),
+    limit: String(limit),
+  });
+  const res = await fetch(`/members/list?${params.toString()}`, { cache: "no-store" });
+  if (!res.ok) {
+    throw new Error(await ApiUtils.parseError(res));
+  }
+  const data = await res.json();
   return {
-    items: all.slice(offset, offset + limit),
-    total: all.length,
+    items: Array.isArray(data.members) ? data.members : [],
+    total: Number(data.total) || 0,
   };
 }
 
-async function refreshGraduatedMembers() {
+async function fetchGraduatedMembers() {
   graduatedState.loading = true;
   try {
     const { items, total } = await fetchGraduatedPage(0, GRADUATED_PAGE_SIZE);
@@ -128,8 +145,8 @@ function renderMemberRows(rows, options = {}) {
 function renderMemberTable(rows, options = {}) {
   const { graduated = false } = options;
   const headers = graduated
-    ? `<th>名前</th><th class="col-username">username</th><th class="col-role">役職</th><th>学年</th><th>卒業</th><th></th>`
-    : `<th>名前</th><th class="col-username">username</th><th>役職</th><th></th>`;
+    ? `<th>名前</th><th class="col-username">ユーザー名</th><th class="col-role">役職</th><th>学年</th><th>卒業</th><th></th>`
+    : `<th>名前</th><th class="col-username">ユーザー名</th><th>役職</th><th></th>`;
 
   if (rows.length === 0) {
     return `<p class="empty">メンバーがいません</p>`;
@@ -145,11 +162,19 @@ function renderMemberTable(rows, options = {}) {
   </table>`;
 }
 
+function findMemberById(id) {
+  const active = members.find((item) => item.id === id);
+  if (active) {
+    return active;
+  }
+  return graduatedState.items.find((item) => item.id === id);
+}
+
 function wireEditButtons(root) {
   root.querySelectorAll("[data-edit-id]").forEach((button) => {
     button.addEventListener("click", () => {
       const id = Number(button.getAttribute("data-edit-id"));
-      const member = members.find((item) => item.id === id);
+      const member = findMemberById(id);
       if (member) {
         EditDialog.open(member);
       }
@@ -208,10 +233,9 @@ function renderGraduatedBoard() {
 
 function renderBoards() {
   const activeMembers = members.filter((member) => isActive(member));
-  const graduatedMembers = members.filter((member) => !isActive(member));
-  els.subtitle.textContent = `在学：${activeMembers.length}名 / 卒業：${graduatedMembers.length}名`;
+  els.subtitle.textContent = `在学：${activeMembers.length}名 / 卒業：${graduatedState.total}名`;
 
-  if (!members.length) {
+  if (!activeMembers.length && graduatedState.total === 0) {
     els.boards.innerHTML = `<p class="history-empty">メンバーが登録されていません</p>`;
     return;
   }
@@ -257,7 +281,8 @@ async function boot() {
     await Promise.all([GradeConfig.ensureLoaded(), RoleConfig.ensureLoaded()]);
     RegisterDialog.fillSelects();
     EditDialog.fillSelects();
-    await refreshGraduatedMembers();
+    await fetchActiveMembers();
+    await fetchGraduatedMembers();
   } catch (err) {
     els.subtitle.textContent = err.message;
     return;

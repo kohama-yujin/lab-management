@@ -6,6 +6,7 @@ from fastapi.responses import JSONResponse, PlainTextResponse
 
 from server.config import load_api_key, load_public_tunnel_url
 from server.grade_store import get_grade_order
+from server.member_store import MemberStoreError, create_member, list_active_members, list_graduated_members, update_member
 from server.role_store import get_roles
 
 api_router = APIRouter()
@@ -20,6 +21,13 @@ class ApiError(Exception):
 
 
 def api_error_handler(_request: Request, exc: ApiError) -> JSONResponse:
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"ok": False, "error": True, "message": exc.message},
+    )
+
+
+def member_store_error_handler(_request: Request, exc: MemberStoreError) -> JSONResponse:
     return JSONResponse(
         status_code=exc.status_code,
         content={"ok": False, "error": True, "message": exc.message},
@@ -95,6 +103,75 @@ def get_grade() -> dict[str, list[str]]:
 @api_router.get("/get_role")
 def get_role() -> dict[str, list[dict[str, str]]]:
     return {"roles": get_roles()}
+
+
+@api_router.get("/members/list")
+def members_list(
+    graduated: int = 0,
+    offset: int = 0,
+    limit: int = 20,
+) -> dict[str, Any]:
+    """メンバー一覧。graduated=1 で卒業済みをページ取得する。"""
+    if graduated:
+        members, total = list_graduated_members(offset, limit)
+        return {"members": members, "total": total}
+
+    members = list_active_members()
+    return {"members": members, "total": len(members)}
+
+
+@api_router.post("/members")
+async def members_create(request: Request) -> dict[str, Any]:
+    """メンバーを新規登録する。"""
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+
+    if not isinstance(body, dict):
+        raise ApiError("JSON 本文が不正です", 400)
+
+    member = create_member(
+        name=str(body.get("name") or ""),
+        grade=str(body.get("grade") or ""),
+        role=str(body.get("role") or ""),
+        username=str(body.get("username") or ""),
+        password=str(body.get("password") or ""),
+    )
+    return {"ok": True, "member": member}
+
+
+@api_router.put("/members/{member_id}")
+async def members_update(member_id: int, request: Request) -> dict[str, Any]:
+    """メンバー情報を更新する。"""
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+
+    if not isinstance(body, dict):
+        raise ApiError("JSON 本文が不正です", 400)
+
+    password = body.get("password")
+    graduation_year = body.get("graduation_year")
+    if graduation_year is not None and graduation_year != "":
+        try:
+            graduation_year = int(graduation_year)
+        except (TypeError, ValueError):
+            raise ApiError("graduation_year が不正です", 400)
+    else:
+        graduation_year = None
+
+    member = update_member(
+        member_id,
+        name=str(body.get("name") or ""),
+        grade=str(body.get("grade") or ""),
+        role=str(body.get("role") or ""),
+        username=str(body.get("username") or ""),
+        password=str(password) if password else None,
+        graduation_year=graduation_year,
+    )
+    return {"ok": True, "member": member}
 
 
 @api_router.get("/status")
