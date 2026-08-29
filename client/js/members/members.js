@@ -7,6 +7,7 @@ const PARTIALS = {
 
 const els = {
   subtitle: document.getElementById("subtitle"),
+  rules: document.getElementById("rules"),
   clockDate: document.getElementById("clock-date"),
   clockTime: document.getElementById("clock-time"),
   boards: document.getElementById("boards"),
@@ -234,6 +235,8 @@ function renderGraduatedBoard() {
 function renderBoards() {
   const activeMembers = members.filter((member) => isActive(member));
   els.subtitle.textContent = `在学：${activeMembers.length}名 / 卒業：${graduatedState.total}名`;
+  els.rules.textContent = "現在、ログインなどのセキュリティ機能が十分に実装されていません。\n" +
+  "本システムはあなた達の善意に基づいた利用を想定しています。";
 
   if (!activeMembers.length && graduatedState.total === 0) {
     els.boards.innerHTML = `<p class="history-empty">メンバーが登録されていません</p>`;

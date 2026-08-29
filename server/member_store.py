@@ -7,6 +7,12 @@ from typing import TypedDict
 
 from server.config import load_database_url
 from server.grade_store import normalize_grade_code
+from server.member_validation import (
+    MemberValidationError,
+    normalize_name,
+    normalize_username,
+    validate_password,
+)
 from server.password_utils import hash_password
 from server.role_store import get_roles
 
@@ -104,21 +110,24 @@ def _resolve_role_id(cur, role_code: str) -> int:
 
 
 def _normalize_username(username: str) -> str:
-    value = (username or "").strip()
-    if not value:
-        raise MemberStoreError("username は必須です", 400)
-    if len(value) > 16:
-        raise MemberStoreError("username は16文字以内にしてください", 400)
-    return value
+    try:
+        return normalize_username(username)
+    except MemberValidationError as exc:
+        raise MemberStoreError(exc.message, exc.status_code) from exc
 
 
 def _normalize_name(name: str) -> str:
-    value = (name or "").strip()
-    if not value:
-        raise MemberStoreError("name は必須です", 400)
-    if len(value) > 10:
-        raise MemberStoreError("name は10文字以内にしてください", 400)
-    return value
+    try:
+        return normalize_name(name)
+    except MemberValidationError as exc:
+        raise MemberStoreError(exc.message, exc.status_code) from exc
+
+
+def _validate_password(password: str, *, required: bool) -> None:
+    try:
+        validate_password(password, required=required)
+    except MemberValidationError as exc:
+        raise MemberStoreError(exc.message, exc.status_code) from exc
 
 
 def _normalize_graduation_year(value: int | None) -> int | None:
@@ -180,8 +189,7 @@ def create_member(
     """メンバーを新規登録する。"""
     normalized_name = _normalize_name(name)
     normalized_username = _normalize_username(username)
-    if not password:
-        raise MemberStoreError("password は必須です", 400)
+    _validate_password(password, required=True)
 
     try:
         with _connect() as conn:
@@ -219,7 +227,7 @@ def create_member(
         raise
     except Exception as exc:
         if _is_unique_violation(exc):
-            raise MemberStoreError("この username は既に使われています", 409) from exc
+            raise MemberStoreError("このユーザー名は既に使われています", 409) from exc
         logger.exception("メンバー登録に失敗しました")
         raise MemberStoreError("メンバーの登録に失敗しました", 500) from exc
 
@@ -238,6 +246,8 @@ def update_member(
     normalized_name = _normalize_name(name)
     normalized_username = _normalize_username(username)
     normalized_graduation_year = _normalize_graduation_year(graduation_year)
+    if password:
+        _validate_password(password, required=False)
 
     try:
         with _connect() as conn:
@@ -303,7 +313,7 @@ def update_member(
         raise
     except Exception as exc:
         if _is_unique_violation(exc):
-            raise MemberStoreError("この username は既に使われています", 409) from exc
+            raise MemberStoreError("このユーザー名は既に使われています", 409) from exc
         logger.exception("メンバー更新に失敗しました")
         raise MemberStoreError("メンバーの更新に失敗しました", 500) from exc
 

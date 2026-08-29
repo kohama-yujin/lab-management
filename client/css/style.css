@@ -286,6 +286,21 @@ body {
   font-size: 0.85rem;
 }
 
+.form-hint {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.form-hint-note {
+  margin: 0 0 0.75rem;
+  padding: 0.45rem 0.55rem;
+  border-radius: 8px;
+  background: #f5f5f4;
+  line-height: 1.45;
+}
+
 .graduation-field {
   display: flex;
   flex-direction: column;

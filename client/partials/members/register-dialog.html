@@ -1,21 +1,27 @@
 <dialog id="register-dialog" class="member-dialog" aria-labelledby="register-dialog-title">
-  <form id="register-form" method="dialog" class="member-form">
+  <form id="register-form" method="dialog" class="member-form" novalidate>
     <h2 id="register-dialog-title" class="dialog-title">メンバー登録</h2>
     <p id="register-error" class="form-error" hidden></p>
 
     <label class="form-field">
       <span class="form-label">名前</span>
-      <input type="text" name="name" required autocomplete="name" />
+      <input
+        type="text"
+        name="name"
+        autocomplete="name"
+        maxlength="10"
+      />
+      <span class="form-hint">10 文字以内</span>
     </label>
 
     <label class="form-field">
       <span class="form-label">学年</span>
-      <select name="grade" required></select>
+      <select name="grade"></select>
     </label>
 
     <label class="form-field">
       <span class="form-label">役職</span>
-      <select name="role" required></select>
+      <select name="role"></select>
     </label>
 
     <label class="form-field">
@@ -23,10 +29,11 @@
       <input
         type="text"
         name="username"
-        required
         autocomplete="username"
+        maxlength="16"
         placeholder="例: tanaka"
       />
+      <span class="form-hint">3〜16文字、英数字と _ のみ</span>
     </label>
 
     <label class="form-field">
@@ -34,10 +41,11 @@
       <input
         type="password"
         name="password"
-        required
         autocomplete="new-password"
-        placeholder="8文字以上を推奨"
+        maxlength="128"
+        placeholder="8文字以上"
       />
+      <span class="form-hint">8文字以上</span>
     </label>
 
     <label class="form-field">
@@ -45,8 +53,8 @@
       <input
         type="password"
         name="password_confirm"
-        required
         autocomplete="new-password"
+        maxlength="128"
         placeholder="もう一度入力"
       />
     </label>

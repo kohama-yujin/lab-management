@@ -29,10 +29,16 @@ const RegisterDialog = {
     event.preventDefault();
     const password = this.form.elements.password.value;
     const passwordConfirm = this.form.elements.password_confirm.value;
-    const passwordError = MemberFormUtils.validatePasswordPair(password, passwordConfirm, true);
+    const validationError = MemberFormUtils.validateMemberFields({
+      name: this.form.elements.name.value,
+      username: this.form.elements.username.value,
+      password,
+      passwordConfirm,
+      passwordRequired: true,
+    });
 
-    if (passwordError) {
-      MemberFormUtils.showError(this.error, passwordError);
+    if (validationError) {
+      MemberFormUtils.showError(this.error, validationError);
       return;
     }
 

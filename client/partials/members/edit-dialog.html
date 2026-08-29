@@ -1,22 +1,27 @@
 <dialog id="edit-dialog" class="member-dialog" aria-labelledby="edit-dialog-title">
-  <form id="edit-form" method="dialog" class="member-form">
+  <form id="edit-form" method="dialog" class="member-form" novalidate>
     <h2 id="edit-dialog-title" class="dialog-title">メンバー編集</h2>
-    <p id="edit-error" class="form-error" hidden></p>
     <input type="hidden" name="member_id" />
 
     <label class="form-field">
       <span class="form-label">名前</span>
-      <input type="text" name="name" required autocomplete="name" />
+      <input
+        type="text"
+        name="name"
+        autocomplete="name"
+        maxlength="10"
+      />
+      <span class="form-hint">10 文字以内</span>
     </label>
 
     <label class="form-field">
       <span class="form-label">学年</span>
-      <select name="grade" required></select>
+      <select name="grade"></select>
     </label>
 
     <label class="form-field">
       <span class="form-label">役職</span>
-      <select name="role" required></select>
+      <select name="role"></select>
     </label>
 
     <label class="form-field">
@@ -24,10 +29,11 @@
       <input
         type="text"
         name="username"
-        required
         autocomplete="username"
+        maxlength="16"
         placeholder="例: tanaka"
       />
+      <span class="form-hint">3〜16文字、英数字と _ のみ</span>
     </label>
 
     <label class="form-field">
@@ -36,8 +42,10 @@
         type="password"
         name="password"
         autocomplete="new-password"
+        maxlength="128"
         placeholder="変更する場合のみ入力"
       />
+      <span class="form-hint">8文字以上</span>
     </label>
 
     <label class="form-field">
@@ -46,9 +54,13 @@
         type="password"
         name="password_confirm"
         autocomplete="new-password"
+        maxlength="128"
         placeholder="変更する場合のみ入力"
       />
     </label>
+
+    <!-- <p class="form-hint form-hint-note">
+    </p> -->
 
     <div class="form-field graduation-field">
       <label class="form-field-inline">
@@ -68,6 +80,8 @@
         />
       </label>
     </div>
+
+    <p id="edit-error" class="form-error" hidden></p>
 
     <div class="dialog-actions">
       <button type="button" class="dialog-btn" data-close-dialog>キャンセル</button>

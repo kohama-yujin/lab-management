@@ -24,23 +24,27 @@ const MemberFormUtils = {
     errorEl.textContent = message;
   },
 
-  validatePasswordPair(password, confirmPassword, required) {
-    const hasPassword = Boolean(password);
-    const hasConfirm = Boolean(confirmPassword);
+  /**
+   * 登録・編集フォームの入力を検証する。最初のエラーメッセージを返す。
+   * @param {{ name: string, username: string, password: string, passwordConfirm: string, passwordRequired: boolean }} fields
+   * @returns {string | null}
+   */
+  validateMemberFields(fields) {
+    const nameError = MemberValidation.validateName(fields.name);
+    if (nameError) {
+      return nameError;
+    }
 
-    if (required && !hasPassword) {
-      return "password を入力してください";
+    const usernameError = MemberValidation.validateUsername(fields.username);
+    if (usernameError) {
+      return usernameError;
     }
-    if (!required && !hasPassword && !hasConfirm) {
-      return null;
-    }
-    if (hasPassword !== hasConfirm) {
-      return "password と確認用 password の両方を入力してください";
-    }
-    if (password !== confirmPassword) {
-      return "password が一致しません";
-    }
-    return null;
+
+    return MemberValidation.validatePasswordPair(
+      fields.password,
+      fields.passwordConfirm,
+      fields.passwordRequired
+    );
   },
 
   openDialog(dialog) {
