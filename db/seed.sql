@@ -3,11 +3,13 @@
 
 INSERT INTO roles (code, name) VALUES
     ('member', '一般'),
-    ('admin', '管理者');
+    ('admin', '管理者')
+ON CONFLICT (code) DO NOTHING;
 
 INSERT INTO grades (code, sort_order) VALUES
     ('Teacher', 1),
     ('M2', 2),
     ('M1', 3),
     ('B4', 4),
-    ('other', 5);
+    ('other', 5)
+ON CONFLICT (code) DO NOTHING;

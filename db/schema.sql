@@ -34,10 +34,14 @@ CREATE TABLE members (
     name            VARCHAR(100)    NOT NULL,
     role_id         SMALLINT        NOT NULL,
     grade_id        SMALLINT        NOT NULL,
+    graduation_year SMALLINT,       -- NULL = 在学中。卒業年度（西暦）を入れる
     created_at      TIMESTAMPTZ     NOT NULL DEFAULT now(),
     updated_at      TIMESTAMPTZ     NOT NULL DEFAULT now(),
 
     CONSTRAINT members_username_unique UNIQUE (username),
+    CONSTRAINT members_graduation_year_check CHECK (
+        graduation_year IS NULL OR graduation_year BETWEEN 2000 AND 2100
+    ),
     CONSTRAINT members_role_id_fkey
         FOREIGN KEY (role_id) REFERENCES roles (id) ON DELETE RESTRICT,
     CONSTRAINT members_grade_id_fkey

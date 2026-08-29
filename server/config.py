@@ -7,6 +7,7 @@ CHECK_INTERVAL_SECONDS = 60
 MAX_TARGETS = 20
 
 ROOT = Path(__file__).resolve().parents[1]
+ENV_FILE = ROOT / ".env"
 API_KEY_FILE = ROOT / "api_key.json"
 # cloudflared Quick Tunnel の公開 URL（起動スクリプトが書き込む）
 TUNNEL_URL_FILE = ROOT / "data" / "tunnel_url.txt"
@@ -17,8 +18,28 @@ logging.basicConfig(
 )
 
 
+def _load_dotenv_file() -> None:
+    """リポジトリ直下の .env を読み込む。既存の環境変数は上書きしない。"""
+    if not ENV_FILE.exists():
+        return
+    try:
+        from dotenv import load_dotenv
+    except ImportError:
+        logging.getLogger(__name__).warning(
+            "python-dotenv が未インストールのため .env を読み込めません"
+        )
+        return
+    load_dotenv(ENV_FILE, override=False)
+
+
+_load_dotenv_file()
+
+
 def load_database_url() -> str | None:
-    """環境変数 DATABASE_URL を返す。未設定なら None。"""
+    """
+    PostgreSQL 接続 URL を返す。
+    優先順: プロセス環境変数 DATABASE_URL → .env の DATABASE_URL。
+    """
     url = os.environ.get("DATABASE_URL", "").strip()
     return url or None
 

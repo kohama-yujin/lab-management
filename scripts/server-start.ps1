@@ -5,7 +5,7 @@
 
 .NOTES
   タスクスケジューラからは次のように実行する:
-    powershell.exe -NoProfile -ExecutionPolicy Bypass -File "...\scripts\start.ps1"
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File "...\scripts\server-start.ps1"
 
   data/ に書き込むのは tunnel_url.txt のみ。
   PID や起動時の一時ログは %TEMP%\lab-management\ に置く。
