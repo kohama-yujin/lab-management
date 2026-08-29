@@ -12,9 +12,8 @@
 
   Python の探索順:
     1. venv\Scripts\python.exe
-    2. wifi_env\Scripts\python.exe
-    3. .venv\Scripts\python.exe
-    4. PATH 上の python（WindowsApps スタブは除外）
+    2. .venv\Scripts\python.exe
+    3. PATH 上の python（WindowsApps スタブは除外）
 
   cloudflared の場所（優先順）:
     1. 環境変数 CLOUDFLARED_EXE
@@ -76,7 +75,6 @@ function Resolve-Cloudflared {
 function Resolve-Python {
     $candidates = @(
         (Join-Path $RepoRoot "venv\Scripts\python.exe"),
-        (Join-Path $RepoRoot "wifi_env\Scripts\python.exe"),
         (Join-Path $RepoRoot ".venv\Scripts\python.exe")
     )
     foreach ($path in $candidates) {
@@ -96,7 +94,7 @@ function Resolve-Python {
         return $cmd.Source
     }
 
-    throw "Python が見つかりません。venv または wifi_env を作成し、pip install -r requirements.txt してください。"
+    throw "Python が見つかりません。.venv\ を作成し、pip install -r requirements.txt してください。"
 }
 
 function Test-PortOpen([int]$PortNumber) {

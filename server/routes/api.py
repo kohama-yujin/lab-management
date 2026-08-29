@@ -5,9 +5,11 @@ from fastapi import APIRouter, Depends, Header, Request
 from fastapi.responses import JSONResponse, PlainTextResponse
 
 from server.config import load_api_key, load_public_tunnel_url
-from server.grade_store import get_grade_order
-from server.member_store import MemberStoreError, create_member, list_active_members, list_graduated_members, update_member
-from server.role_store import get_roles
+from server.db import StoreError
+from server.stores import attendance as attendance_store
+from server.stores.grade import get_grade_order
+from server.stores.member import create_member, list_active_members, list_graduated_members, update_member
+from server.stores.role import get_roles
 
 api_router = APIRouter()
 
@@ -27,7 +29,7 @@ def api_error_handler(_request: Request, exc: ApiError) -> JSONResponse:
     )
 
 
-def member_store_error_handler(_request: Request, exc: MemberStoreError) -> JSONResponse:
+def store_error_handler(_request: Request, exc: StoreError) -> JSONResponse:
     return JSONResponse(
         status_code=exc.status_code,
         content={"ok": False, "error": True, "message": exc.message},
@@ -200,52 +202,36 @@ def get_history(day: str) -> dict[str, Any]:
     return payload
 
 
-@api_router.post("/attendance_start")
-async def attendance_start(body: Annotated[dict[str, Any], Depends(require_api_key)]) -> dict[str, Any]:
+@api_router.post("/start_attendance")
+async def start_attendance(body: Annotated[dict[str, Any], Depends(require_api_key)]) -> dict[str, Any]:
+    """在室セッションの開始。"""
     username = body.get("username")
     password = body.get("password")
 
     if not username or not password:
         raise ApiError("username と password は必須です", 400)
 
-    # result = start_monitoring(name, grade)
-    # if result == "full":
-    #     raise ApiError("同時接続数の上限に達しています", 429)
-    # return {
-    #     "ok": True,
-    #     "message": "受け付けました",
-    #     "public_url": load_public_tunnel_url(),
-    # }
-    return {"ok": True,
-            "message": "在室登録が完了しました",
-            "public_url": load_public_tunnel_url(),
+    result = attendance_store.start_attendance(str(username), str(password))
+    return {
+        "ok": result["ok"],
+        "ignored": result["ignored"],
+        "message": result["message"],
+        "public_url": load_public_tunnel_url(),
     }
 
 
-@api_router.post("/attendance_end")
-async def attendance_end(body: Annotated[dict[str, Any], Depends(require_api_key)]) -> dict[str, Any]:
-    """Wi‑Fi 切断時の不在トリガー。"""
+@api_router.post("/end_attendance")
+async def end_attendance(body: Annotated[dict[str, Any], Depends(require_api_key)]) -> dict[str, Any]:
+    """在室セッションの終了。日付またぎの在室セッションも閉じる。"""
     username = body.get("username")
     password = body.get("password")
 
     if not username or not password:
         raise ApiError("username と password は必須です", 400)
 
-    # result = stop_monitoring(name, grade)
-    # if result == "missing":
-    #     return {
-    #         "ok": True,
-    #         "ignored": True,
-    #         "message": "当日の在室記録が見つかりません",
-    #     }
-    # if result == "already_absent":
-    #     return {
-    #         "ok": True,
-    #         "ignored": True,
-    #         "message": "すでに不在です",
-    #     }
-    # return {
-    #     "ok": True,
-    #     "message": "不在にしました",
-    # }
-    return {"ok": True, "message": "不在登録が完了しました"}
+    result = attendance_store.end_attendance(str(username), str(password))
+    return {
+        "ok": result["ok"],
+        "ignored": result["ignored"],
+        "message": result["message"],
+    }

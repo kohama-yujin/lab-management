@@ -5,8 +5,7 @@ from __future__ import annotations
 import logging
 from typing import TypedDict
 
-from server.config import load_database_url
-from server.grade_store import normalize_grade_code
+from server.db import StoreError, connect, is_unique_violation
 from server.member_validation import (
     MemberValidationError,
     normalize_name,
@@ -14,7 +13,8 @@ from server.member_validation import (
     validate_password,
 )
 from server.password_utils import hash_password
-from server.role_store import get_roles
+from server.stores.grade import normalize_grade_code
+from server.stores.role import get_roles
 
 logger = logging.getLogger(__name__)
 
@@ -26,15 +26,6 @@ class MemberItem(TypedDict):
     username: str
     role: str
     graduation_year: int | None
-
-
-class MemberStoreError(Exception):
-    """メンバー操作の論理エラー。"""
-
-    def __init__(self, message: str, status_code: int = 400) -> None:
-        super().__init__(message)
-        self.message = message
-        self.status_code = status_code
 
 
 _MEMBER_SELECT = """
@@ -49,19 +40,6 @@ FROM members m
 JOIN grades g ON g.id = m.grade_id
 JOIN roles r ON r.id = m.role_id
 """
-
-
-def _require_database_url() -> str:
-    database_url = load_database_url()
-    if not database_url:
-        raise MemberStoreError("DATABASE_URL が未設定です", 503)
-    return database_url
-
-
-def _connect():
-    import psycopg
-
-    return psycopg.connect(_require_database_url())
 
 
 def _row_to_member(row: tuple) -> MemberItem:
@@ -92,7 +70,7 @@ def _resolve_grade_id(cur, grade_code: str) -> int:
     cur.execute("SELECT id FROM grades WHERE code = %s", (normalized,))
     row = cur.fetchone()
     if not row:
-        raise MemberStoreError(f"学年 '{normalized}' が見つかりません", 400)
+        raise StoreError(f"学年 '{normalized}' が見つかりません", 400)
     return int(row[0])
 
 
@@ -100,12 +78,12 @@ def _resolve_role_id(cur, role_code: str) -> int:
     code = (role_code or "").strip()
     known = {role["code"] for role in get_roles()}
     if code not in known:
-        raise MemberStoreError(f"役職 '{code}' が無効です", 400)
+        raise StoreError(f"役職 '{code}' が無効です", 400)
 
     cur.execute("SELECT id FROM roles WHERE code = %s", (code,))
     row = cur.fetchone()
     if not row:
-        raise MemberStoreError(f"役職 '{code}' が見つかりません", 400)
+        raise StoreError(f"役職 '{code}' が見つかりません", 400)
     return int(row[0])
 
 
@@ -113,34 +91,34 @@ def _normalize_username(username: str) -> str:
     try:
         return normalize_username(username)
     except MemberValidationError as exc:
-        raise MemberStoreError(exc.message, exc.status_code) from exc
+        raise StoreError(exc.message, exc.status_code) from exc
 
 
 def _normalize_name(name: str) -> str:
     try:
         return normalize_name(name)
     except MemberValidationError as exc:
-        raise MemberStoreError(exc.message, exc.status_code) from exc
+        raise StoreError(exc.message, exc.status_code) from exc
 
 
 def _validate_password(password: str, *, required: bool) -> None:
     try:
         validate_password(password, required=required)
     except MemberValidationError as exc:
-        raise MemberStoreError(exc.message, exc.status_code) from exc
+        raise StoreError(exc.message, exc.status_code) from exc
 
 
 def _normalize_graduation_year(value: int | None) -> int | None:
     if value is None:
         return None
     if value < 2000 or value > 2100:
-        raise MemberStoreError("graduation_year は 2000〜2100 の範囲で指定してください", 400)
+        raise StoreError("graduation_year は 2000〜2100 の範囲で指定してください", 400)
     return value
 
 
 def list_active_members() -> list[MemberItem]:
     """在学中メンバー一覧を返す。"""
-    with _connect() as conn:
+    with connect() as conn:
         with conn.cursor() as cur:
             cur.execute(
                 f"{_MEMBER_SELECT} WHERE m.graduation_year IS NULL ORDER BY g.sort_order ASC, m.name ASC"
@@ -157,7 +135,7 @@ def list_graduated_members(offset: int, limit: int) -> tuple[list[MemberItem], i
     if limit > 100:
         limit = 100
 
-    with _connect() as conn:
+    with connect() as conn:
         with conn.cursor() as cur:
             cur.execute(
                 "SELECT COUNT(*) FROM members WHERE graduation_year IS NOT NULL"
@@ -192,7 +170,7 @@ def create_member(
     _validate_password(password, required=True)
 
     try:
-        with _connect() as conn:
+        with connect() as conn:
             with conn.cursor() as cur:
                 grade_id = _resolve_grade_id(cur, grade)
                 role_id = _resolve_role_id(cur, role)
@@ -216,20 +194,20 @@ def create_member(
                 )
                 inserted = cur.fetchone()
                 if not inserted:
-                    raise MemberStoreError("メンバーの登録に失敗しました", 500)
+                    raise StoreError("メンバーの登録に失敗しました", 500)
 
                 member = _fetch_member(cur, int(inserted[0]))
                 if not member:
-                    raise MemberStoreError("登録したメンバーの取得に失敗しました", 500)
+                    raise StoreError("登録したメンバーの取得に失敗しました", 500)
                 conn.commit()
                 return member
-    except MemberStoreError:
+    except StoreError:
         raise
     except Exception as exc:
-        if _is_unique_violation(exc):
-            raise MemberStoreError("このユーザー名は既に使われています", 409) from exc
+        if is_unique_violation(exc):
+            raise StoreError("このユーザー名は既に使われています", 409) from exc
         logger.exception("メンバー登録に失敗しました")
-        raise MemberStoreError("メンバーの登録に失敗しました", 500) from exc
+        raise StoreError("メンバーの登録に失敗しました", 500) from exc
 
 
 def update_member(
@@ -250,11 +228,11 @@ def update_member(
         _validate_password(password, required=False)
 
     try:
-        with _connect() as conn:
+        with connect() as conn:
             with conn.cursor() as cur:
                 cur.execute("SELECT 1 FROM members WHERE id = %s", (member_id,))
                 if not cur.fetchone():
-                    raise MemberStoreError("メンバーが見つかりません", 404)
+                    raise StoreError("メンバーが見つかりません", 404)
 
                 grade_id = _resolve_grade_id(cur, grade)
                 role_id = _resolve_role_id(cur, role)
@@ -306,21 +284,13 @@ def update_member(
 
                 member = _fetch_member(cur, member_id)
                 if not member:
-                    raise MemberStoreError("更新したメンバーの取得に失敗しました", 500)
+                    raise StoreError("更新したメンバーの取得に失敗しました", 500)
                 conn.commit()
                 return member
-    except MemberStoreError:
+    except StoreError:
         raise
     except Exception as exc:
-        if _is_unique_violation(exc):
-            raise MemberStoreError("このユーザー名は既に使われています", 409) from exc
+        if is_unique_violation(exc):
+            raise StoreError("このユーザー名は既に使われています", 409) from exc
         logger.exception("メンバー更新に失敗しました")
-        raise MemberStoreError("メンバーの更新に失敗しました", 500) from exc
-
-
-def _is_unique_violation(exc: Exception) -> bool:
-    try:
-        from psycopg.errors import UniqueViolation
-    except ImportError:
-        return False
-    return isinstance(exc, UniqueViolation)
+        raise StoreError("メンバーの更新に失敗しました", 500) from exc

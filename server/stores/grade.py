@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+
 from server.config import load_database_url
 
 logger = logging.getLogger(__name__)
