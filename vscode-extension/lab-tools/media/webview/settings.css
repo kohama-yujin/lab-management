@@ -1,0 +1,104 @@
+:root {
+  color-scheme: light dark;
+}
+
+body {
+  font-family: var(--vscode-font-family);
+  font-size: var(--vscode-font-size);
+  color: var(--vscode-foreground);
+  background: var(--vscode-editor-background);
+  padding: 16px 20px 32px;
+  max-width: 520px;
+  margin: 0;
+}
+
+h1 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0 0 4px;
+}
+
+.sub {
+  color: var(--vscode-descriptionForeground);
+  margin: 0 0 18px;
+  font-size: 0.9em;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 100px 1fr;
+  column-gap: 8px;
+  row-gap: 4px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+label {
+  color: var(--vscode-foreground);
+}
+
+input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 6px 8px;
+  border: 1px solid var(--vscode-input-border, transparent);
+  background: var(--vscode-input-background);
+  color: var(--vscode-input-foreground);
+  border-radius: 2px;
+}
+
+input:focus {
+  outline: 1px solid var(--vscode-focusBorder);
+}
+
+.hint {
+  grid-column: 2;
+  margin: 0;
+  font-size: 0.8em;
+  color: var(--vscode-descriptionForeground);
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+
+button {
+  padding: 6px 14px;
+  border: none;
+  border-radius: 2px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.primary {
+  background: var(--vscode-button-background);
+  color: var(--vscode-button-foreground);
+}
+
+.secondary {
+  background: var(--vscode-button-secondaryBackground);
+  color: var(--vscode-button-secondaryForeground);
+}
+
+#status {
+  margin-top: 14px;
+  padding: 8px 10px;
+  border-radius: 4px;
+  display: none;
+  font-size: 0.9em;
+}
+
+#status.ok {
+  display: block;
+  background: color-mix(in srgb, var(--vscode-testing-iconPassed) 18%, transparent);
+  border: 1px solid color-mix(in srgb, var(--vscode-testing-iconPassed) 40%, transparent);
+}
+
+#status.error {
+  display: block;
+  background: color-mix(in srgb, var(--vscode-errorForeground) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--vscode-errorForeground) 35%, transparent);
+}

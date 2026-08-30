@@ -1,7 +1,7 @@
 {
   "name": "lab-tools",
   "displayName": "lab-tools",
-  "description": "",
+  "description": "研究室向けの在室管理・作業記録ツール",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.80.0"
@@ -9,15 +9,64 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
       {
-        "command": "lab-tools.helloWorld",
-        "title": "Hello World"
+        "command": "lab-tools.openSettings",
+        "title": "Lab Tools: 接続設定を開く",
+        "icon": "$(gear)"
       }
-    ]
+    ],
+    "configuration": {
+      "title": "Lab Tools",
+      "properties": {
+        "labTools.username": {
+          "type": "string",
+          "default": "",
+          "description": "在室 API に使う username"
+        },
+        "labTools.serverIp": {
+          "type": "string",
+          "default": "",
+          "description": "LAN 上のサーバー（例: 192.168.1.20:8000）。接続の第一候補"
+        },
+        "labTools.publicUrl": {
+          "type": "string",
+          "default": "",
+          "description": "公開 URL（serverIp 失敗時のフォールバック）"
+        }
+      }
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "lab-tools",
+          "title": "Lab Tools",
+          "icon": "media/lab.svg"
+        }
+      ]
+    },
+    "views": {
+      "lab-tools": [
+        {
+          "id": "labTools.statusView",
+          "name": "Lab Tools"
+        }
+      ]
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "lab-tools.openSettings",
+          "when": "view == labTools.statusView",
+          "group": "navigation@2"
+        }
+      ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
