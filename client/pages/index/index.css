@@ -63,6 +63,21 @@
   color: var(--teacher-ink);
 }
 
+.session-detail-head[data-grade="D3"] {
+  background: var(--d3);
+  color: var(--d3-ink);
+}
+
+.session-detail-head[data-grade="D2"] {
+  background: var(--d2);
+  color: var(--d2-ink);
+}
+
+.session-detail-head[data-grade="D1"] {
+  background: var(--d1);
+  color: var(--d1-ink);
+}
+
 .session-detail-head[data-grade="M2"] {
   background: var(--m2);
   color: var(--m2-ink);
@@ -78,14 +93,29 @@
   color: var(--b4-ink);
 }
 
+.session-detail-head[data-grade="B3"] {
+  background: var(--b3);
+  color: var(--b3-ink);
+}
+
+.session-detail-head[data-grade="B2"] {
+  background: var(--b2);
+  color: var(--b2-ink);
+}
+
+.session-detail-head[data-grade="B1"] {
+  background: var(--b1);
+  color: var(--b1-ink);
+}
+
 .session-detail-head[data-grade="other"] {
   background: var(--other);
   color: var(--other-ink);
 }
 
 .session-detail-head[data-grade="graduated"] {
-  background: #e4e2dc;
-  color: #5a5852;
+  background: var(--graduated);
+  color: var(--graduated-ink);
 }
 
 .session-detail-title {

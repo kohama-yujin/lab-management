@@ -7,7 +7,7 @@ from fastapi.responses import JSONResponse, PlainTextResponse
 from server.config import load_api_key, load_public_tunnel_url
 from server.db import StoreError
 from server.stores import attendance as attendance_store
-from server.stores.grade import get_grade_order
+from server.stores.grade import get_grade_order, get_grades_with_enrolled_members
 from server.stores.member import create_member, list_active_members, list_graduated_members, update_member
 from server.stores.role import get_roles
 from server.stores.status import get_today_status
@@ -83,7 +83,7 @@ async def require_api_key(
 
 
 def _empty_status_payload() -> dict[str, Any]:
-    grades = get_grade_order()
+    grades = get_grades_with_enrolled_members()
     return {
         "revision": 0,
         "public_url": load_public_tunnel_url(),

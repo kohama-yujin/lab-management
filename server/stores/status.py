@@ -8,7 +8,7 @@ from typing import Any, TypedDict
 from zoneinfo import ZoneInfo
 
 from server.db import StoreError, connect
-from server.stores.grade import get_grade_order
+from server.stores.grade import get_grades_with_enrolled_members
 
 logger = logging.getLogger(__name__)
 
@@ -185,7 +185,8 @@ def get_today_status() -> dict[str, Any]:
     JST 本日の在室ボード用ペイロードを返す。
     public_url はルート側で付与する。
     """
-    grades = get_grade_order()
+    # 在学生がいる学年のみボード表示する（当日未出勤でも空ボードは出す）
+    grades = get_grades_with_enrolled_members()
     now, day_start, day_end = _day_bounds()
 
     try:
@@ -252,7 +253,8 @@ def get_today_status() -> dict[str, Any]:
             continue
         grade = member_row["grade"]
         if grade not in by_grade:
-            by_grade[grade] = []
+            # 在学生がいない学年の当日セッションはボード対象外
+            continue
         by_grade[grade].append(member_row)
         count += 1
 
