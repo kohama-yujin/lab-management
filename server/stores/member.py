@@ -74,6 +74,59 @@ def _resolve_grade_id(cur, grade_code: str) -> int:
     return int(row[0])
 
 
+def _insert_grade_change(
+    cur,
+    member_id: int,
+    grade_id_from: int | None,
+    grade_id_to: int,
+) -> None:
+    """学年変更イベントを1行追記する。登録時は grade_id_from を NULL にする。"""
+    cur.execute(
+        """
+        INSERT INTO member_grade_changes (member_id, grade_id_from, grade_id_to)
+        VALUES (%s, %s, %s)
+        """,
+        (member_id, grade_id_from, grade_id_to),
+    )
+
+
+def _insert_role_change(
+    cur,
+    member_id: int,
+    role_id_from: int | None,
+    role_id_to: int,
+) -> None:
+    """役職変更イベントを1行追記する。登録時は role_id_from を NULL にする。"""
+    cur.execute(
+        """
+        INSERT INTO member_role_changes (member_id, role_id_from, role_id_to)
+        VALUES (%s, %s, %s)
+        """,
+        (member_id, role_id_from, role_id_to),
+    )
+
+
+def _insert_graduation_change(
+    cur,
+    member_id: int,
+    graduation_year_from: int | None,
+    graduation_year_to: int | None,
+) -> None:
+    """
+    卒業状態の変更イベントを1行追記する。
+    graduation_year_* が NULL なら在学。登録時は from/to とも NULL。
+    """
+    cur.execute(
+        """
+        INSERT INTO member_graduation_changes (
+            member_id, graduation_year_from, graduation_year_to
+        )
+        VALUES (%s, %s, %s)
+        """,
+        (member_id, graduation_year_from, graduation_year_to),
+    )
+
+
 def _resolve_role_id(cur, role_code: str) -> int:
     code = (role_code or "").strip()
     known = {role["code"] for role in get_roles()}
@@ -196,7 +249,12 @@ def create_member(
                 if not inserted:
                     raise StoreError("メンバーの登録に失敗しました", 500)
 
-                member = _fetch_member(cur, int(inserted[0]))
+                member_id = int(inserted[0])
+                _insert_grade_change(cur, member_id, None, grade_id)
+                _insert_role_change(cur, member_id, None, role_id)
+                _insert_graduation_change(cur, member_id, None, None)
+
+                member = _fetch_member(cur, member_id)
                 if not member:
                     raise StoreError("登録したメンバーの取得に失敗しました", 500)
                 conn.commit()
@@ -230,10 +288,17 @@ def update_member(
     try:
         with connect() as conn:
             with conn.cursor() as cur:
-                cur.execute("SELECT 1 FROM members WHERE id = %s", (member_id,))
-                if not cur.fetchone():
+                cur.execute(
+                    "SELECT grade_id, role_id, graduation_year FROM members WHERE id = %s",
+                    (member_id,),
+                )
+                current = cur.fetchone()
+                if not current:
                     raise StoreError("メンバーが見つかりません", 404)
 
+                old_grade_id = int(current[0])
+                old_role_id = int(current[1])
+                old_graduation_year = int(current[2]) if current[2] is not None else None
                 grade_id = _resolve_grade_id(cur, grade)
                 role_id = _resolve_role_id(cur, role)
 
@@ -280,6 +345,18 @@ def update_member(
                             normalized_graduation_year,
                             member_id,
                         ),
+                    )
+
+                if grade_id != old_grade_id:
+                    _insert_grade_change(cur, member_id, old_grade_id, grade_id)
+                if role_id != old_role_id:
+                    _insert_role_change(cur, member_id, old_role_id, role_id)
+                if normalized_graduation_year != old_graduation_year:
+                    _insert_graduation_change(
+                        cur,
+                        member_id,
+                        old_graduation_year,
+                        normalized_graduation_year,
                     )
 
                 member = _fetch_member(cur, member_id)

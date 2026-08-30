@@ -140,7 +140,15 @@ def fetch_status(conn: psycopg.Connection) -> dict[str, int | str]:
         dbname = str(cur.fetchone()[0])
 
         counts: dict[str, int | str] = {"database": dbname}
-        for table in ("roles", "grades", "members", "attendance_sessions"):
+        for table in (
+            "roles",
+            "grades",
+            "members",
+            "member_grade_changes",
+            "member_role_changes",
+            "member_graduation_changes",
+            "attendance_sessions",
+        ):
             if not _table_exists(conn, table):
                 counts[table] = "（テーブルなし）"
                 continue
@@ -217,7 +225,15 @@ def cmd_status(args: argparse.Namespace) -> int:
 
 def _print_status(status: dict[str, int | str]) -> None:
     print(f"database: {status['database']}")
-    for table in ("roles", "grades", "members", "attendance_sessions"):
+    for table in (
+        "roles",
+        "grades",
+        "members",
+        "member_grade_changes",
+        "member_role_changes",
+        "member_graduation_changes",
+        "attendance_sessions",
+    ):
         print(f"  {table}: {status[table]}")
 
 

@@ -1,7 +1,6 @@
 <dialog id="register-dialog" class="member-dialog" aria-labelledby="register-dialog-title">
   <form id="register-form" method="dialog" class="member-form" novalidate>
     <h2 id="register-dialog-title" class="dialog-title">メンバー登録</h2>
-    <p id="register-error" class="form-error" hidden></p>
 
     <label class="form-field">
       <span class="form-label">名前</span>
@@ -58,6 +57,8 @@
         placeholder="もう一度入力"
       />
     </label>
+    
+    <p id="register-error" class="form-error" hidden></p>
 
     <div class="dialog-actions">
       <button type="button" class="dialog-btn" data-close-dialog>キャンセル</button>

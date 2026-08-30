@@ -7,7 +7,8 @@ from fastapi.responses import JSONResponse, PlainTextResponse
 from server.config import load_api_key, load_public_tunnel_url
 from server.db import StoreError
 from server.stores import attendance as attendance_store
-from server.stores.grade import get_grade_order, get_grades_with_enrolled_members
+from server.stores.grade import get_grade_order
+from server.stores.history import get_history_for_day, list_history_dates
 from server.stores.member import create_member, list_active_members, list_graduated_members, update_member
 from server.stores.role import get_roles
 from server.stores.status import get_today_status
@@ -80,17 +81,6 @@ async def require_api_key(
         raise ApiError("APIキーが無効です", 401)
 
     return data if isinstance(data, dict) else {}
-
-
-def _empty_status_payload() -> dict[str, Any]:
-    grades = get_grades_with_enrolled_members()
-    return {
-        "revision": 0,
-        "public_url": load_public_tunnel_url(),
-        "grades": grades,
-        "by_grade": {grade: [] for grade in grades},
-        "count": 0,
-    }
 
 
 @api_router.get("/health")
@@ -187,22 +177,20 @@ def status() -> dict[str, Any]:
 
 @api_router.get("/history/dates")
 def get_dates() -> dict[str, list[str]]:
-    # return {"dates": list_history_dates()}
-    return {"dates": []}
+    """在室があった過去日（JST）を新しい順で返す。空の日は含まない。"""
+    return {"dates": list_history_dates()}
 
 
 @api_router.get("/history/{day}")
 def get_history(day: str) -> dict[str, Any]:
-    # data = get_history(day)
-    # if data is None:
-    #     raise ApiError(
-    #         "指定日の記録がありません（当日は履歴対象外です）",
-    #         404,
-    #     )
-    # return data
-    payload = _empty_status_payload()
-    payload["day"] = day
-    return payload
+    """指定日の在室履歴。当日・空の日は 404。"""
+    data = get_history_for_day(day)
+    if data is None:
+        raise ApiError(
+            "指定日の記録がありません",
+            404,
+        )
+    return data
 
 
 @api_router.post("/start_attendance")
