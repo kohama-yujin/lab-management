@@ -3,9 +3,6 @@ import logging
 import os
 from pathlib import Path
 
-CHECK_INTERVAL_SECONDS = 60
-MAX_TARGETS = 20
-
 ROOT = Path(__file__).resolve().parents[1]
 ENV_FILE = ROOT / ".env"
 API_KEY_FILE = ROOT / "api_key.json"

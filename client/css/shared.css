@@ -5,14 +5,28 @@
   --bg: #f3f1eb;
   --teacher: #e2e2e0;
   --teacher-ink: #4a4a48;
+  --d3: #ddd0ea;
+  --d3-ink: #4a3568;
+  --d2: #e8dff2;
+  --d2-ink: #5c4578;
+  --d1: #f0eaf6;
+  --d1-ink: #6b5788;
   --m2: #d7e8f5;
   --m2-ink: #1e4b6e;
   --m1: #e8d7b0;
   --m1-ink: #6a4e1a;
   --b4: #d8ecda;
   --b4-ink: #2a5c34;
+  --b3: #c5e4ca;
+  --b3-ink: #245530;
+  --b2: #b4dcbd;
+  --b2-ink: #1f4c2c;
+  --b1: #a3d4b0;
+  --b1-ink: #1a4328;
   --other: #f3d9d6;
   --other-ink: #6e322c;
+  --graduated: #d8dde4;
+  --graduated-ink: #3e4654;
   --present: #1f6b45;
   --uncertain: #8a6a12;
   --away: #7a4a32;
@@ -51,7 +65,7 @@ body {
 
 .title {
   margin: 0;
-  font-family: "Shippori Mincho", serif;
+  font-family: "Noto Sans JP", sans-serif;
   font-size: clamp(2rem, 5vw, 3rem);
   font-weight: 700;
   letter-spacing: 0.04em;
@@ -109,7 +123,6 @@ body {
   margin: 0;
   min-width: 11rem;
   text-align: center;
-  font-family: "Shippori Mincho", serif;
   font-size: 1.15rem;
   font-weight: 600;
   letter-spacing: 0.03em;
@@ -243,7 +256,7 @@ body {
 
 .dialog-title {
   margin: 0 0 0.85rem;
-  font-family: "Shippori Mincho", serif;
+  font-family: "Noto Sans JP", sans-serif;
   font-size: 1.25rem;
 }
 
@@ -438,6 +451,21 @@ body {
   color: var(--teacher-ink);
 }
 
+.board[data-grade="D3"] {
+  background: var(--d3);
+  color: var(--d3-ink);
+}
+
+.board[data-grade="D2"] {
+  background: var(--d2);
+  color: var(--d2-ink);
+}
+
+.board[data-grade="D1"] {
+  background: var(--d1);
+  color: var(--d1-ink);
+}
+
 .board[data-grade="M2"] {
   background: var(--m2);
   color: var(--m2-ink);
@@ -453,14 +481,29 @@ body {
   color: var(--b4-ink);
 }
 
+.board[data-grade="B3"] {
+  background: var(--b3);
+  color: var(--b3-ink);
+}
+
+.board[data-grade="B2"] {
+  background: var(--b2);
+  color: var(--b2-ink);
+}
+
+.board[data-grade="B1"] {
+  background: var(--b1);
+  color: var(--b1-ink);
+}
+
 .board[data-grade="other"] {
   background: var(--other);
   color: var(--other-ink);
 }
 
 .board[data-grade="graduated"] {
-  background: #e4e2dc;
-  color: #5a5852;
+  background: var(--graduated);
+  color: var(--graduated-ink);
 }
 
 .board td.member-actions {
@@ -577,15 +620,43 @@ body {
     display: none;
   }
 
-  .board {
-    overflow-x: auto;
+  .title {
+    font-size: clamp(1.5rem, 3vw, 2rem);
+  }
+  
+  .subtitle {
+    font-size: 0.8rem;
+  }
+  
+  .public-url {
+    font-size: 0.8rem;
   }
 
-  .board .col-username {
+  .rules {
+    font-size: 0.7rem;
+  }
+
+  .board {
+    overflow-x: auto;
+    padding: 0.5rem 0.75rem 0.75rem;
+  }
+
+  .board .col-username, .board .col-arrived, .board .col-left {
     display: none;
   }
 
   .board[data-grade="graduated"] .col-role {
     display: none;
   }
+
+  .board-title {
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+  }
+
+  .board table {
+    font-size: 0.8rem;
+  }
 }
+

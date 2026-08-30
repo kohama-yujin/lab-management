@@ -17,19 +17,19 @@ def _client_file(relative_path: str) -> FileResponse:
 
 @client_router.get("/")
 def client_page() -> FileResponse:
-    return _client_file("pages/index.html")
+    return _client_file("pages/index/index.html")
 
 
 @client_router.get("/history")
 @client_router.get("/history/")
 def history_page() -> FileResponse:
-    return _client_file("pages/history.html")
+    return _client_file("pages/history/history.html")
 
 
 @client_router.get("/members")
 @client_router.get("/members/")
 def members_page() -> FileResponse:
-    return _client_file("pages/members.html")
+    return _client_file("pages/members/members.html")
 
 
 @client_router.get("/client")

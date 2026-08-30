@@ -1,8 +1,8 @@
 /** @typedef {{ id: number, name: string, grade: string, username: string, role: string, graduation_year: number | null }} Member */
 
 const PARTIALS = {
-  register: "/client/partials/members/register-dialog.html",
-  edit: "/client/partials/members/edit-dialog.html",
+  register: "/client/pages/members/register-dialog.html",
+  edit: "/client/pages/members/edit-dialog.html",
 };
 
 const els = {
@@ -149,10 +149,6 @@ function renderMemberTable(rows, options = {}) {
     ? `<th>名前</th><th class="col-username">ユーザー名</th><th class="col-role">役職</th><th>学年</th><th>卒業</th><th></th>`
     : `<th>名前</th><th class="col-username">ユーザー名</th><th>役職</th><th></th>`;
 
-  if (rows.length === 0) {
-    return `<p class="empty">メンバーがいません</p>`;
-  }
-
   return `<table>
     <thead>
       <tr>${headers}</tr>
@@ -246,7 +242,9 @@ function renderBoards() {
   const gradeBoards = GradeConfig.order
     .map((grade) => {
       const rows = activeMembers.filter((member) => member.grade === grade).sort(compareByName);
-      return `<section class="board" data-grade="${grade}">
+
+
+      return `<section class="board" data-grade="${grade}" style="display: ${rows.length === 0 ? "none" : "block"};">
         <h2 class="board-title">${GradeConfig.label(grade)}</h2>
         ${renderMemberTable(rows)}
       </section>`;

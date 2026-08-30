@@ -1,0 +1,354 @@
+/* 在室管理ページ（/） */
+
+.col-total {
+  white-space: nowrap;
+}
+
+.total-duration {
+  margin-right: 0;
+}
+
+.detail-btn {
+  appearance: none;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.75);
+  color: inherit;
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.detail-btn:hover {
+  background: #fff;
+}
+
+.col-detail {
+  width: 1%;
+  text-align: right;
+}
+
+.session-detail-dialog {
+  width: min(92vw, 36rem);
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 0;
+  background: #fffdf8;
+  color: var(--ink);
+  box-shadow: 0 18px 48px rgba(28, 36, 32, 0.18);
+}
+
+.session-detail-dialog::backdrop {
+  background: rgba(28, 36, 32, 0.35);
+}
+
+.session-detail-panel {
+  padding: 0;
+}
+
+.session-detail-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.9rem 1rem 0.75rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.session-detail-head[data-grade="Teacher"] {
+  background: var(--teacher);
+  color: var(--teacher-ink);
+}
+
+.session-detail-head[data-grade="D3"] {
+  background: var(--d3);
+  color: var(--d3-ink);
+}
+
+.session-detail-head[data-grade="D2"] {
+  background: var(--d2);
+  color: var(--d2-ink);
+}
+
+.session-detail-head[data-grade="D1"] {
+  background: var(--d1);
+  color: var(--d1-ink);
+}
+
+.session-detail-head[data-grade="M2"] {
+  background: var(--m2);
+  color: var(--m2-ink);
+}
+
+.session-detail-head[data-grade="M1"] {
+  background: var(--m1);
+  color: var(--m1-ink);
+}
+
+.session-detail-head[data-grade="B4"] {
+  background: var(--b4);
+  color: var(--b4-ink);
+}
+
+.session-detail-head[data-grade="B3"] {
+  background: var(--b3);
+  color: var(--b3-ink);
+}
+
+.session-detail-head[data-grade="B2"] {
+  background: var(--b2);
+  color: var(--b2-ink);
+}
+
+.session-detail-head[data-grade="B1"] {
+  background: var(--b1);
+  color: var(--b1-ink);
+}
+
+.session-detail-head[data-grade="other"] {
+  background: var(--other);
+  color: var(--other-ink);
+}
+
+.session-detail-head[data-grade="graduated"] {
+  background: var(--graduated);
+  color: var(--graduated-ink);
+}
+
+.session-detail-title {
+  margin: 0;
+  font-family: "Noto Sans JP", sans-serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.session-detail-meta {
+  margin: 0.3rem 0 0;
+  font-size: 0.86rem;
+  opacity: 0.78;
+}
+
+.session-detail-close {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  opacity: 0.65;
+  font-size: 1.35rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0.1rem 0.35rem;
+}
+
+.session-detail-close:hover {
+  opacity: 1;
+}
+
+.session-detail-body {
+  padding: 1rem 1rem 1.15rem;
+}
+
+.session-detail-notes {
+  margin: 0 0 0.85rem;
+  padding: 0.55rem 0.7rem;
+  border-radius: 10px;
+  background: #fff8e8;
+  border: 1px solid #e6c97a;
+}
+
+.session-detail-note {
+  margin: 0;
+  font-size: 0.86rem;
+  color: #6a4e1a;
+  font-weight: 600;
+}
+
+.session-detail-note + .session-detail-note {
+  margin-top: 0.25rem;
+}
+
+.session-detail-kpis {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  margin-bottom: 0.9rem;
+}
+
+.session-detail-kpi {
+  background: #f7f5f0;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 0.55rem 0.7rem;
+}
+
+.session-detail-kpi .label {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+.session-detail-kpi .value {
+  display: block;
+  margin-top: 0.1rem;
+  font-weight: 700;
+  font-size: 1.02rem;
+}
+
+.session-detail-kpi.present .value {
+  color: var(--present);
+}
+
+.session-detail-chart {
+  margin-bottom: 0.85rem;
+}
+
+.session-detail-axis-top {
+  position: relative;
+  height: 1.55rem;
+  margin-bottom: 0;
+}
+
+.session-detail-hour {
+  position: absolute;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 0.7rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.session-detail-hour[style*="left:0%"] {
+  transform: translateX(0);
+  align-items: flex-start;
+}
+
+.session-detail-hour[style*="left:100%"] {
+  transform: translateX(-100%);
+  align-items: flex-end;
+}
+
+.session-detail-hour-tick {
+  display: block;
+  width: 1px;
+  height: 0.45rem;
+  margin-top: 0.15rem;
+  background: rgba(28, 36, 32, 0.45);
+}
+
+.session-detail-bar {
+  position: relative;
+  height: 2.15rem;
+  border-radius: 8px;
+  background: #ece8e1;
+  border: 1px solid var(--line);
+  overflow: hidden;
+}
+
+.session-detail-seg {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: var(--present);
+}
+
+.session-detail-axis-bottom {
+  position: relative;
+  height: 2.6rem;
+  margin-top: 0.2rem;
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.session-detail-endpoint {
+  position: absolute;
+  transform: translateX(-50%);
+  text-align: center;
+  white-space: nowrap;
+}
+
+.session-detail-endpoint::before {
+  content: "";
+  display: block;
+  width: 1px;
+  height: 0.4rem;
+  margin: 0 auto 0.15rem;
+  background: rgba(28, 36, 32, 0.35);
+}
+
+.session-detail-endpoint .cap {
+  display: block;
+  font-size: 0.62rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.session-detail-endpoint-combined {
+  background: #fffdf8;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.15rem 0.4rem 0.25rem;
+  box-shadow: 0 2px 8px rgba(28, 36, 32, 0.08);
+}
+
+.session-detail-endpoint-combined::before {
+  margin-bottom: 0.1rem;
+}
+
+.session-detail-endpoint-combined .cap {
+  line-height: 1.35;
+}
+
+.session-cross-tag {
+  display: inline-block;
+  margin-left: 0.35rem;
+  padding: 0.05rem 0.4rem;
+  border-radius: 999px;
+  background: #fff8e8;
+  border: 1px solid #e6c97a;
+  color: #6a4e1a;
+  font-size: 0.68rem;
+  font-weight: 700;
+  vertical-align: middle;
+}
+
+.session-detail-table-wrap {
+  overflow-x: auto;
+}
+
+.session-detail-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.session-detail-table th,
+.session-detail-table td {
+  border-bottom: 1px solid var(--line);
+  padding: 0.5rem 0.45rem;
+  text-align: left;
+}
+
+.session-detail-table th {
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 0.76rem;
+}
+
+.session-detail-table td.session-num {
+  font-weight: 700;
+  color: var(--present);
+  width: 2.4em;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 720px) {
+  .session-detail-kpis {
+    grid-template-columns: 1fr;
+  }
+}

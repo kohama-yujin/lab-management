@@ -3,12 +3,25 @@
 from __future__ import annotations
 
 import logging
+
 from server.config import load_database_url
 
 logger = logging.getLogger(__name__)
 
 # DATABASE_URL 未設定時のフォールバック（db/seed.sql と一致させる）
-_FALLBACK_GRADE_ORDER = ("Teacher", "M2", "M1", "B4", "other")
+_FALLBACK_GRADE_ORDER = (
+    "Teacher",
+    "D3",
+    "D2",
+    "D1",
+    "M2",
+    "M1",
+    "B4",
+    "B3",
+    "B2",
+    "B1",
+    "other",
+)
 
 _cached_grade_order: list[str] | None = None
 
@@ -48,6 +61,46 @@ def get_grade_order() -> list[str]:
     if _cached_grade_order is None:
         _cached_grade_order = _fetch_grade_order_from_db()
     return list(_cached_grade_order)
+
+
+def get_grades_with_enrolled_members() -> list[str]:
+    """
+    在学生（graduation_year IS NULL）が1人以上いる学年 code を、
+    sort_order 順で返す。
+    """
+    database_url = load_database_url()
+    if not database_url:
+        return get_grade_order()
+
+    try:
+        import psycopg
+    except ImportError:
+        logger.warning("psycopg が未インストールのため全学年を返します")
+        return get_grade_order()
+
+    try:
+        with psycopg.connect(database_url) as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    SELECT g.code
+                    FROM grades g
+                    WHERE EXISTS (
+                        SELECT 1
+                        FROM members m
+                        WHERE m.grade_id = g.id
+                          AND m.graduation_year IS NULL
+                    )
+                    ORDER BY g.sort_order ASC, g.id ASC
+                    """
+                )
+                rows = cur.fetchall()
+    except Exception:
+        logger.exception("在学生がいる学年の取得に失敗したため全学年を返します")
+        return get_grade_order()
+
+    return [str(row[0]) for row in rows if row and row[0]]
+
 
 
 def invalidate_grade_cache() -> None:

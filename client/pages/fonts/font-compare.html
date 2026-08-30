@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>廃止フォント箇所 — 字体比較シート v2</title>
+  <!-- 1 リクエストに詰め込みすぎると未読込になるため分割 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+JP:wght@400;700&family=Noto+Sans+JP:wght@400;700&family=Noto+Serif+JP:wght@400;700&family=Zen+Kaku+Gothic+New:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=M+PLUS+1p:wght@400;700&family=BIZ+UDPGothic:wght@400;700&family=BIZ+UDPMincho:wght@400;700&family=Shippori+Mincho:wght@600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Sawarabi+Gothic&family=Sawarabi+Mincho&family=Zen+Old+Mincho:wght@400;700&family=Hina+Mincho&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Kosugi+Maru&family=Zen+Maru+Gothic:wght@400;700&family=Klee+One&family=Yuji+Syuku&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #1c2420;
+      --muted: #5e6a64;
+      --line: rgba(28, 36, 32, 0.12);
+      --bg: #f3f1eb;
+      --m2: #d7e8f5;
+      --m2-ink: #1e4b6e;
+      --warn-bg: #fff8e8;
+      --warn-border: #e6c97a;
+      --ok-bg: #e8f3ed;
+      --ok-border: #a8d5bc;
+      --bad-bg: #fde8e8;
+      --bad-border: #e8b4b4;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "IBM Plex Sans JP", "Yu Gothic UI", sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+      line-height: 1.55;
+    }
+    .wrap { max-width: 72rem; margin: 0 auto; padding: 1.25rem 1rem 3rem; }
+
+    /* —— 各字体用クラス（!important で確実に適用） —— */
+    .ff-ibm-plex { font-family: "IBM Plex Sans JP", sans-serif !important; }
+    .ff-shippori { font-family: "Shippori Mincho", serif !important; }
+    .ff-noto-sans { font-family: "Noto Sans JP", sans-serif !important; }
+    .ff-noto-serif { font-family: "Noto Serif JP", serif !important; }
+    .ff-zen-kaku { font-family: "Zen Kaku Gothic New", sans-serif !important; }
+    .ff-mplus { font-family: "M PLUS 1p", sans-serif !important; }
+    .ff-biz-gothic { font-family: "BIZ UDPGothic", sans-serif !important; }
+    .ff-sawarabi-gothic { font-family: "Sawarabi Gothic", sans-serif !important; }
+    .ff-zen-old { font-family: "Zen Old Mincho", serif !important; }
+    .ff-biz-mincho { font-family: "BIZ UDPMincho", serif !important; }
+    .ff-sawarabi-mincho { font-family: "Sawarabi Mincho", serif !important; }
+    .ff-hina { font-family: "Hina Mincho", serif !important; }
+    .ff-kosugi { font-family: "Kosugi Maru", sans-serif !important; }
+    .ff-zen-maru { font-family: "Zen Maru Gothic", sans-serif !important; }
+    .ff-klee { font-family: "Klee One", cursive !important; }
+    .ff-yuji { font-family: "Yuji Syuku", serif !important; }
+    .ff-system { font-family: "Yu Gothic UI", "Meiryo", sans-serif !important; }
+
+    #load-banner {
+      padding: 0.75rem 1rem;
+      border-radius: 10px;
+      margin-bottom: 1rem;
+      font-size: 0.88rem;
+      font-weight: 600;
+    }
+    #load-banner.pending { background: var(--warn-bg); border: 1px solid var(--warn-border); }
+    #load-banner.ok { background: var(--ok-bg); border: 1px solid var(--ok-border); }
+    #load-banner.fail { background: var(--bad-bg); border: 1px solid var(--bad-border); }
+
+    section {
+      background: #fffdf8;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 1rem 1.1rem;
+      margin-bottom: 1rem;
+    }
+    section > h1 {
+      margin: 0 0 0.65rem;
+      font-size: 1.05rem;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 0.4rem;
+    }
+    .hint { margin: 0 0 0.75rem; font-size: 0.86rem; color: var(--muted); }
+
+    /* 読み込み確認ストリップ */
+    .probe-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
+      gap: 0.5rem;
+      margin: 0.75rem 0;
+    }
+    .probe {
+      border: 2px solid var(--line);
+      border-radius: 10px;
+      padding: 0.6rem;
+      text-align: center;
+      background: #fff;
+    }
+    .probe-label {
+      font-size: 0.65rem;
+      color: var(--muted);
+      font-family: "IBM Plex Sans JP", sans-serif !important;
+      margin-bottom: 0.25rem;
+    }
+    .probe-text {
+      font-size: 2rem;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+    .probe-sub {
+      font-size: 0.72rem;
+      margin-top: 0.2rem;
+      font-family: "IBM Plex Sans JP", sans-serif !important;
+      color: var(--muted);
+    }
+
+    /* 字体ごと 1 行 */
+    .font-row {
+      display: grid;
+      grid-template-columns: 9.5rem 1fr 1fr 1fr;
+      gap: 0.55rem;
+      align-items: stretch;
+      padding: 0.65rem 0;
+      border-bottom: 1px solid var(--line);
+    }
+    .font-row:last-child { border-bottom: 0; }
+    .font-row-head {
+      font-size: 0.72rem;
+      color: var(--muted);
+      font-weight: 600;
+      padding: 0.35rem 0;
+    }
+    .font-id {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 0.25rem;
+      padding-right: 0.35rem;
+    }
+    .font-id .name {
+      font-size: 0.78rem;
+      font-weight: 700;
+      line-height: 1.35;
+    }
+    .font-id .probe-char {
+      font-size: 1.6rem;
+      font-weight: 700;
+      line-height: 1.1;
+    }
+    .font-id .tag {
+      display: inline-block;
+      font-size: 0.62rem;
+      font-weight: 700;
+      padding: 0.06rem 0.35rem;
+      border-radius: 999px;
+      background: #ece8e1;
+      width: fit-content;
+      font-family: "IBM Plex Sans JP", sans-serif !important;
+    }
+    .sample {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 0.55rem 0.6rem;
+      background: #fff;
+      min-height: 4.5rem;
+    }
+    .sample.context-title { background: linear-gradient(180deg, #fff 0%, #faf8f4 100%); }
+    .sample.context-dialog { background: #fff; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.8); }
+    .sample.context-session { background: var(--m2); color: var(--m2-ink); }
+
+    .s-label {
+      font-size: 0.6rem;
+      font-weight: 600;
+      opacity: 0.65;
+      margin-bottom: 0.2rem;
+      font-family: "IBM Plex Sans JP", sans-serif !important;
+      letter-spacing: 0.04em;
+    }
+    .s-title {
+      font-size: 2rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      line-height: 1.15;
+      margin: 0;
+    }
+    .s-dialog {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin: 0;
+    }
+    .s-session {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      margin: 0;
+    }
+    .s-probe {
+      font-size: 0.68rem;
+      margin-top: 0.25rem;
+      opacity: 0.75;
+      font-family: "IBM Plex Sans JP", sans-serif !important;
+    }
+
+    .pick { margin-top: 0.35rem; font-size: 0.68rem; font-family: "IBM Plex Sans JP", sans-serif !important; }
+    .pick input { vertical-align: middle; }
+
+    @media (max-width: 900px) {
+      .font-row { grid-template-columns: 1fr; }
+      .font-row-head { display: none; }
+    }
+
+    .worksheet td, .worksheet th {
+      border: 1px solid var(--line);
+      padding: 0.45rem 0.55rem;
+      font-size: 0.82rem;
+    }
+    .worksheet { width: 100%; border-collapse: collapse; margin-top: 0.5rem; }
+    .worksheet th { background: #f0ece4; }
+    code { font-size: 0.78rem; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header style="margin-bottom:1rem;padding-bottom:0.75rem;border-bottom:2px solid var(--line);">
+      <p style="margin:0;font-size:0.78rem;color:var(--muted);">agent-responses · v2</p>
+      <h1 style="margin:0.2rem 0 0;font-size:1.45rem;">廃止箇所フォント比較（差が見える版）</h1>
+    </header>
+
+    <div id="load-banner" class="pending">字体を読み込み中…</div>
+
+    <section>
+      <h1>① まずここ — 4 字体だけ大きく表示（全部同じなら未読込）</h1>
+      <p class="hint">ゴシック / 明朝 / 丸ゴ / 筆文字は<strong>形が明確に違う</strong>はずです。4 つが同じ見た目なら、下の「開き方」を確認してください。</p>
+      <div class="probe-grid">
+        <div class="probe">
+          <div class="probe-label">ゴシック IBM Plex</div>
+          <div class="probe-text ff-ibm-plex">在室</div>
+          <div class="probe-sub">画が均一・角ばる</div>
+        </div>
+        <div class="probe">
+          <div class="probe-label">明朝 Shippori</div>
+          <div class="probe-text ff-shippori">在室</div>
+          <div class="probe-sub">縦画に抑揚</div>
+        </div>
+        <div class="probe">
+          <div class="probe-label">丸ゴ Kosugi Maru</div>
+          <div class="probe-text ff-kosugi">在室</div>
+          <div class="probe-sub">末端が丸い</div>
+        </div>
+        <div class="probe">
+          <div class="probe-label">筆 Yuji Syuku</div>
+          <div class="probe-text ff-yuji">在室</div>
+          <div class="probe-sub">書道風</div>
+        </div>
+      </div>
+      <p class="hint" id="open-hint">
+        <strong>推奨:</strong> ブラウザで <code>http://127.0.0.1:5000/client/pages/fonts/font-compare.html</code> を開く（サーバー経由）。<br>
+        <code>file://</code> で直接開くと Google Fonts がブロックされ、全部 OS 既定字体（Yu Gothic 等）になり<strong>同じに見えます</strong>。
+      </p>
+    </section>
+
+    <section>
+      <h1>② 廃止 3 箇所 × 16 字体（1 行 = 1 字体）</h1>
+      <p class="hint">左に字体名＋判別用の「あ」、右 3 列が実際の UI 文言。チェックで候補をメモ。</p>
+      <div class="font-row font-row-head">
+        <div>字体</div>
+        <div>① .title — 在室管理</div>
+        <div>② .dialog-title — メンバー登録</div>
+        <div>③ .session-detail-title — 山田 太郎 (M2)</div>
+      </div>
+      <div id="font-rows"></div>
+    </section>
+
+    <section>
+      <h1>③ 選択メモ</h1>
+      <table class="worksheet">
+        <thead>
+          <tr><th>箇所</th><th>採用字体</th><th>CSS class</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>.title</code></td><td contenteditable="true"></td><td><code>.ff-???</code></td></tr>
+          <tr><td><code>.dialog-title</code></td><td contenteditable="true"></td><td><code>.ff-???</code></td></tr>
+          <tr><td><code>.session-detail-title</code></td><td contenteditable="true"></td><td><code>.ff-???</code></td></tr>
+        </tbody>
+      </table>
+    </section>
+  </div>
+
+  <script>
+    const FONTS = [
+      { id: "ibm-plex", cls: "ff-ibm-plex", name: "IBM Plex Sans JP", tag: "現行", cat: "sans" },
+      { id: "shippori", cls: "ff-shippori", name: "Shippori Mincho", tag: "旧設定", cat: "mincho" },
+      { id: "noto-sans", cls: "ff-noto-sans", name: "Noto Sans JP", tag: "sans", cat: "sans" },
+      { id: "noto-serif", cls: "ff-noto-serif", name: "Noto Serif JP", tag: "serif", cat: "mincho" },
+      { id: "zen-kaku", cls: "ff-zen-kaku", name: "Zen Kaku Gothic New", tag: "sans", cat: "sans" },
+      { id: "mplus", cls: "ff-mplus", name: "M PLUS 1p", tag: "sans", cat: "sans" },
+      { id: "biz-gothic", cls: "ff-biz-gothic", name: "BIZ UDPGothic", tag: "UD sans", cat: "sans" },
+      { id: "sawarabi-gothic", cls: "ff-sawarabi-gothic", name: "Sawarabi Gothic", tag: "sans", cat: "sans" },
+      { id: "zen-old", cls: "ff-zen-old", name: "Zen Old Mincho", tag: "mincho", cat: "mincho" },
+      { id: "biz-mincho", cls: "ff-biz-mincho", name: "BIZ UDPMincho", tag: "UD mincho", cat: "mincho" },
+      { id: "sawarabi-mincho", cls: "ff-sawarabi-mincho", name: "Sawarabi Mincho", tag: "mincho", cat: "mincho" },
+      { id: "hina", cls: "ff-hina", name: "Hina Mincho", tag: "display", cat: "mincho" },
+      { id: "kosugi", cls: "ff-kosugi", name: "Kosugi Maru", tag: "丸ゴ", cat: "round" },
+      { id: "zen-maru", cls: "ff-zen-maru", name: "Zen Maru Gothic", tag: "丸ゴ", cat: "round" },
+      { id: "klee", cls: "ff-klee", name: "Klee One", tag: "手書き", cat: "round" },
+      { id: "yuji", cls: "ff-yuji", name: "Yuji Syuku", tag: "筆", cat: "display" },
+    ];
+
+    const CHECK_FAMILIES = [
+      ["IBM Plex Sans JP", "700 32px \"IBM Plex Sans JP\""],
+      ["Shippori Mincho", "700 32px \"Shippori Mincho\""],
+      ["Kosugi Maru", "400 32px \"Kosugi Maru\""],
+      ["Yuji Syuku", "400 32px \"Yuji Syuku\""],
+    ];
+
+    function renderRows() {
+      document.getElementById("font-rows").innerHTML = FONTS.map((f) => `
+        <div class="font-row" data-font="${f.id}">
+          <div class="font-id">
+            <span class="name ${f.cls}">${f.name}</span>
+            <span class="probe-char ${f.cls}">あ</span>
+            <span class="tag">${f.tag}</span>
+            <label class="pick"><input type="checkbox"> 候補</label>
+          </div>
+          <div class="sample context-title">
+            <div class="s-label">.title</div>
+            <p class="s-title ${f.cls}">在室管理</p>
+            <div class="s-probe">Ag 012 · 画数差を確認</div>
+          </div>
+          <div class="sample context-dialog">
+            <div class="s-label">.dialog-title</div>
+            <p class="s-dialog ${f.cls}">メンバー登録</p>
+            <div class="s-probe">フォーム直上</div>
+          </div>
+          <div class="sample context-session">
+            <div class="s-label">.session-detail-title</div>
+            <p class="s-session ${f.cls}">山田 太郎 (M2)</p>
+            <div class="s-probe">M2 ヘッダー上</div>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    async function verifyFonts() {
+      const banner = document.getElementById("load-banner");
+      try {
+        await document.fonts.ready;
+        const results = await Promise.all(
+          CHECK_FAMILIES.map(async ([label, spec]) => {
+            const ok = document.fonts.check(spec);
+            return { label, ok };
+          })
+        );
+        const okCount = results.filter((r) => r.ok).length;
+        if (okCount >= 3) {
+          banner.className = "ok";
+          banner.textContent = `字体読み込み OK（${okCount}/4 確認）。上の 4 枚プローブで形の差を確認してください。`;
+        } else if (location.protocol === "file:") {
+          banner.className = "fail";
+          banner.innerHTML = "未読込: file:// で開いています。サーバー URL から開いてください → <code>http://127.0.0.1:5000/client/pages/fonts/font-compare.html</code>";
+        } else {
+          banner.className = "fail";
+          banner.textContent = `字体読み込み不足（${okCount}/4）。ネットワークまたは Google Fonts を確認してください。`;
+        }
+      } catch (e) {
+        banner.className = "fail";
+        banner.textContent = "字体読み込み確認に失敗しました。";
+      }
+    }
+
+    renderRows();
+    verifyFonts();
+  </script>
+</body>
+</html>
