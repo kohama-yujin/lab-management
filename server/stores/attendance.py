@@ -48,6 +48,8 @@ def start_attendance(username: str, password: str) -> AttendanceResult:
             with conn.cursor() as cur:
                 member_id = _authenticate(cur, username, password)
                 member = _fetch_member(cur, member_id)
+                if member is None:
+                    raise StoreError("ユーザーが見つかりません", 404)
                 if member["graduation_year"] is not None:
                     raise StoreError("このユーザーは卒業しています", 400)
 

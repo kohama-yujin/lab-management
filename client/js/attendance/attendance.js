@@ -1,8 +1,11 @@
 // 接続・切断・加算ループの revision 変化を検知する短い監視間隔
 const WATCH_MS = 1000;
+
 let watchTimer = null;
 let lastRevision = null;
 let rulesReady = false;
+/** @type {object | null} */
+let lastStatus = null;
 
 const els = {
   subtitle: document.getElementById("subtitle"),
@@ -12,6 +15,7 @@ const els = {
   clockDate: document.getElementById("clock-date"),
   clockTime: document.getElementById("clock-time"),
   boards: document.getElementById("boards"),
+  dialogRoot: document.getElementById("attendance-dialogs"),
 };
 
 const { dash, formatTime, formatDuration } = DisplayUtils;
@@ -40,9 +44,7 @@ function setPublicUrl(status) {
 }
 
 function formatRules(_status) {
-  return (
-    ""
-  );
+  return "";
 }
 
 function presenceView(t) {
@@ -77,6 +79,7 @@ function renderBoards(status) {
                   <th class="col-arrived">到着</th>
                   <th class="col-left">帰宅</th>
                   <th>総在室</th>
+                  <th class="col-detail"></th>
                 </tr>
               </thead>
               <tbody>
@@ -92,7 +95,16 @@ function renderBoards(status) {
                       <td>${dash(t.name)}</td>
                       <td class="col-arrived">${arrived}</td>
                       <td class="col-left">${left}</td>
-                      <td>${formatDuration(t.total_present_seconds)}</td>
+                      <td class="col-total">
+                        <span class="total-duration">${formatDuration(t.total_present_seconds)}</span>
+                      </td>
+                      <td class="col-detail">
+                        <button
+                          type="button"
+                          class="detail-btn"
+                          data-member-id="${t.member_id}"
+                        >詳細</button>
+                      </td>
                     </tr>`;
                   })
                   .join("")}
@@ -105,6 +117,8 @@ function renderBoards(status) {
       </section>`;
     })
     .join("");
+
+  SessionDetailDialog.refresh(status);
 }
 
 async function watch() {
@@ -112,6 +126,7 @@ async function watch() {
     const res = await fetch("/status", { cache: "no-store" });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const status = await res.json();
+    lastStatus = status;
     const revision = status.revision;
 
     // 公開 URL は revision と独立に変わる（トンネル起動後）ので毎回更新
@@ -137,9 +152,15 @@ async function watch() {
 async function boot() {
   DisplayUtils.startClock(els.clockDate, els.clockTime);
   try {
+    await SessionDetailDialog.loadPartial(els.dialogRoot);
+    SessionDetailDialog.init();
+    SessionDetailDialog.wireBoard(els.boards, (memberId) => {
+      if (!lastStatus) return;
+      SessionDetailDialog.open(memberId, lastStatus);
+    });
     await GradeConfig.ensureLoaded();
   } catch (err) {
-    els.subtitle.textContent = "学年設定の取得に失敗しました";
+    els.subtitle.textContent = "初期化に失敗しました";
     if (els.rules) els.rules.textContent = `更新失敗: ${err.message}`;
     return;
   }

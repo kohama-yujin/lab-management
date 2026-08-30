@@ -15,14 +15,32 @@ logger = logging.getLogger(__name__)
 JST = ZoneInfo("Asia/Tokyo")
 
 
+class DaySessionClip(TypedDict):
+    """当日にクリップした在室セッション1本。"""
+
+    start_at: str
+    end_at: str | None
+    raw_start_at: str
+    raw_end_at: str | None
+    end_at_is_now: bool
+    end_at_is_end_of_day: bool
+    starts_from_previous_day: bool
+    duration_seconds: int
+
+
 class DayMemberRow(TypedDict):
+    member_id: int
     name: str
     grade: str
     present: bool
     arrived_at: str | None
     left_at: str | None
     left_at_is_end_of_day: bool
+    arrived_from_previous_day: bool
+    left_into_next_day: bool
     total_present_seconds: int
+    session_count: int
+    sessions: list[DaySessionClip]
 
 
 def _day_bounds(*, now: datetime | None = None) -> tuple[datetime, datetime, datetime]:
@@ -45,6 +63,7 @@ def _ensure_jst(value: datetime) -> datetime:
 
 def aggregate_member_day(
     *,
+    member_id: int,
     name: str,
     grade: str,
     sessions: list[tuple[datetime, datetime | None]],
@@ -56,56 +75,86 @@ def aggregate_member_day(
     1メンバー分の当日表示を集計する。
     sessions: (start_at, end_at)。当日と重ならなければ None。
     """
-    clips: list[tuple[datetime, datetime]] = []
-    starts: list[datetime] = []
-    ends: list[datetime] = []
+    clips: list[DaySessionClip] = []
+    raw_starts: list[datetime] = []
+    raw_ends: list[datetime] = []
     present = False
 
     for start_at, end_at in sessions:
         start_at = _ensure_jst(start_at)
         end_at = _ensure_jst(end_at) if end_at is not None else None
-        if end_at is None:
+        open_session = end_at is None
+        if open_session:
             present = True
         effective_end = end_at if end_at is not None else now
         clip_start = max(start_at, day_start)
         clip_end = min(effective_end, day_end)
         if clip_end <= clip_start:
             continue
-        clips.append((clip_start, clip_end))
-        starts.append(start_at)
+
+        end_at_is_end_of_day = (not open_session) and end_at is not None and end_at >= day_end
+        starts_from_previous_day = start_at < day_start
+        # 表示上の終了: 開いていれば now、翌日またぎなら day_end
+        if open_session:
+            display_end = clip_end
+            end_at_is_now = True
+        elif end_at_is_end_of_day:
+            display_end = day_end
+            end_at_is_now = False
+        else:
+            display_end = clip_end
+            end_at_is_now = False
+
+        duration = int((clip_end - clip_start).total_seconds())
+        clips.append(
+            {
+                "start_at": _to_iso(clip_start),
+                "end_at": _to_iso(display_end),
+                "raw_start_at": _to_iso(start_at),
+                "raw_end_at": _to_iso(end_at) if end_at is not None else None,
+                "end_at_is_now": end_at_is_now,
+                "end_at_is_end_of_day": end_at_is_end_of_day,
+                "starts_from_previous_day": starts_from_previous_day,
+                "duration_seconds": max(0, duration),
+            }
+        )
+        raw_starts.append(start_at)
         if end_at is not None:
-            ends.append(end_at)
+            raw_ends.append(end_at)
 
     if not clips:
         return None
 
-    first_start = min(starts)
+    first_start = min(raw_starts)
+    arrived_from_previous_day = first_start < day_start
     # 前日開始なら表示上の到着は当日 0:00
-    arrived_at = day_start if first_start < day_start else first_start
+    arrived_at = day_start if arrived_from_previous_day else first_start
 
     left_at: datetime | None = None
     left_at_is_end_of_day = False
     if not present:
-        last_end = max(ends)
+        last_end = max(raw_ends)
         if last_end >= day_end:
-            # 翌日にまたいで終了 → 表示は 24:00
             left_at = day_end
             left_at_is_end_of_day = True
         else:
             left_at = last_end
 
-    total_seconds = int(
-        sum((clip_end - clip_start).total_seconds() for clip_start, clip_end in clips)
-    )
+    total_seconds = sum(clip["duration_seconds"] for clip in clips)
 
     return {
+        "member_id": member_id,
         "name": name,
         "grade": grade,
         "present": present,
         "arrived_at": _to_iso(arrived_at),
         "left_at": _to_iso(left_at) if left_at is not None else None,
         "left_at_is_end_of_day": left_at_is_end_of_day,
+        "arrived_from_previous_day": arrived_from_previous_day,
+        "left_into_next_day": left_at_is_end_of_day,
         "total_present_seconds": max(0, total_seconds),
+        "session_count": len(clips),
+        "sessions": clips,
     }
 
 
@@ -191,6 +240,7 @@ def get_today_status() -> dict[str, Any]:
     for member_id in ordered_ids:
         item = grouped[member_id]
         member_row = aggregate_member_day(
+            member_id=member_id,
             name=item["name"],
             grade=item["grade"],
             sessions=item["sessions"],
