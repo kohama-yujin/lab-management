@@ -8,8 +8,9 @@
 --   出入りのたびに1行。end_at IS NULL は在室中。
 --   日次集計の境界は JST 0:00（アプリ側）。
 --
--- member_grade_changes / member_role_changes:
---   登録・変更のたびに1行追記。履歴日の学年・役職は「その日終わりまでの最新行」。
+-- member_grade_changes / member_role_changes / member_graduation_changes:
+--   登録・変更のたびに1行追記。履歴日の属性は「その日終わりまでの最新行」。
+--   graduation_year_* が NULL なら在学。
 
 CREATE TABLE roles (
     id              SMALLSERIAL     PRIMARY KEY,
@@ -91,6 +92,28 @@ CREATE TABLE member_role_changes (
 
 CREATE INDEX member_role_changes_member_created_idx
     ON member_role_changes (member_id, created_at DESC, id DESC);
+
+CREATE TABLE member_graduation_changes (
+    id                      BIGSERIAL       PRIMARY KEY,
+    member_id               BIGINT          NOT NULL,
+    graduation_year_from    SMALLINT,
+    graduation_year_to      SMALLINT,
+    created_at              TIMESTAMPTZ     NOT NULL DEFAULT now(),
+
+    CONSTRAINT member_graduation_changes_member_id_fkey
+        FOREIGN KEY (member_id) REFERENCES members (id) ON DELETE RESTRICT,
+    CONSTRAINT member_graduation_changes_from_check CHECK (
+        graduation_year_from IS NULL
+        OR graduation_year_from BETWEEN 2000 AND 2100
+    ),
+    CONSTRAINT member_graduation_changes_to_check CHECK (
+        graduation_year_to IS NULL
+        OR graduation_year_to BETWEEN 2000 AND 2100
+    )
+);
+
+CREATE INDEX member_graduation_changes_member_created_idx
+    ON member_graduation_changes (member_id, created_at DESC, id DESC);
 
 
 CREATE TABLE attendance_sessions (

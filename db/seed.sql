@@ -7,15 +7,15 @@ INSERT INTO roles (code, name) VALUES
 ON CONFLICT (code) DO NOTHING;
 
 INSERT INTO grades (code, sort_order) VALUES
-    ('Teacher', 1),
-    ('D3', 2),
-    ('D2', 3),
-    ('D1', 4),
-    ('M2', 5),
-    ('M1', 6),
-    ('B4', 7),
-    ('B3', 8),
-    ('B2', 9),
-    ('B1', 10),
-    ('other', 11)
+    ('Teacher', 0),
+    ('D3', 1),
+    ('D2', 2),
+    ('D1', 3),
+    ('M2', 4),
+    ('M1', 5),
+    ('B4', 6),
+    ('B3', 7),
+    ('B2', 8),
+    ('B1', 9),
+    ('other', 10)
 ON CONFLICT (code) DO NOTHING;

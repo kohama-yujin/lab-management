@@ -106,6 +106,27 @@ def _insert_role_change(
     )
 
 
+def _insert_graduation_change(
+    cur,
+    member_id: int,
+    graduation_year_from: int | None,
+    graduation_year_to: int | None,
+) -> None:
+    """
+    卒業状態の変更イベントを1行追記する。
+    graduation_year_* が NULL なら在学。登録時は from/to とも NULL。
+    """
+    cur.execute(
+        """
+        INSERT INTO member_graduation_changes (
+            member_id, graduation_year_from, graduation_year_to
+        )
+        VALUES (%s, %s, %s)
+        """,
+        (member_id, graduation_year_from, graduation_year_to),
+    )
+
+
 def _resolve_role_id(cur, role_code: str) -> int:
     code = (role_code or "").strip()
     known = {role["code"] for role in get_roles()}
@@ -231,6 +252,7 @@ def create_member(
                 member_id = int(inserted[0])
                 _insert_grade_change(cur, member_id, None, grade_id)
                 _insert_role_change(cur, member_id, None, role_id)
+                _insert_graduation_change(cur, member_id, None, None)
 
                 member = _fetch_member(cur, member_id)
                 if not member:
@@ -267,7 +289,7 @@ def update_member(
         with connect() as conn:
             with conn.cursor() as cur:
                 cur.execute(
-                    "SELECT grade_id, role_id FROM members WHERE id = %s",
+                    "SELECT grade_id, role_id, graduation_year FROM members WHERE id = %s",
                     (member_id,),
                 )
                 current = cur.fetchone()
@@ -276,6 +298,7 @@ def update_member(
 
                 old_grade_id = int(current[0])
                 old_role_id = int(current[1])
+                old_graduation_year = int(current[2]) if current[2] is not None else None
                 grade_id = _resolve_grade_id(cur, grade)
                 role_id = _resolve_role_id(cur, role)
 
@@ -328,6 +351,13 @@ def update_member(
                     _insert_grade_change(cur, member_id, old_grade_id, grade_id)
                 if role_id != old_role_id:
                     _insert_role_change(cur, member_id, old_role_id, role_id)
+                if normalized_graduation_year != old_graduation_year:
+                    _insert_graduation_change(
+                        cur,
+                        member_id,
+                        old_graduation_year,
+                        normalized_graduation_year,
+                    )
 
                 member = _fetch_member(cur, member_id)
                 if not member:

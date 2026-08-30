@@ -36,7 +36,7 @@ function renderBoards(status) {
       const rows = byGrade[grade] || [];
       const body =
         rows.length === 0
-          ? `<p class="empty">この日の記録はありません</p>`
+          ? `<p class="empty">この日は来ていません</p>`
           : `<table>
               <thead>
                 <tr>
@@ -51,11 +51,15 @@ function renderBoards(status) {
                 ${rows
                   .map((t) => {
                     const view = presenceView(t);
+                    const arrived = formatTime(t.arrived_at);
+                    const left = t.left_at_is_end_of_day
+                      ? "24:00"
+                      : formatTime(t.left_at);
                     return `<tr class="${view.rowClass}">
                       <td class="${view.statusClass}">${view.label}</td>
                       <td>${dash(t.name)}</td>
-                      <td>${formatTime(t.arrived_at)}</td>
-                      <td>${formatTime(t.left_at)}</td>
+                      <td>${arrived}</td>
+                      <td>${left}</td>
                       <td>${formatDuration(t.total_present_seconds)}</td>
                     </tr>`;
                   })
