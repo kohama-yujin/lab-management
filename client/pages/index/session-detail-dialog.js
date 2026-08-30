@@ -2,7 +2,7 @@
  * 在室セッション詳細ダイアログ（partial 読み込み・描画・開閉）。
  */
 const SessionDetailDialog = {
-  PARTIAL: "/client/partials/attendance/session-detail-dialog.html",
+  PARTIAL: "/client/pages/index/session-detail-dialog.html",
   HOUR_MARKS: [0, 6, 12, 18, 24],
   /** 到着・帰宅ラベルが重なるとみなす最小間隔（当日幅に対する %） */
   ENDPOINT_LABEL_MIN_GAP_PCT: 15,
@@ -10,6 +10,7 @@ const SessionDetailDialog = {
   root: null,
   openMemberId: null,
   dialog: null,
+  head: null,
   title: null,
   meta: null,
   notes: null,
@@ -37,6 +38,7 @@ const SessionDetailDialog = {
 
   bindElements() {
     this.dialog = document.getElementById("session-detail-dialog");
+    this.head = this.dialog?.querySelector(".session-detail-head") ?? null;
     this.title = document.getElementById("session-detail-title");
     this.meta = document.getElementById("session-detail-meta");
     this.notes = document.getElementById("session-detail-notes");
@@ -62,7 +64,7 @@ const SessionDetailDialog = {
   /**
    * ボード上の「詳細」ボタンクリックを委譲する。
    * @param {HTMLElement} boardsEl
-   * @param {(memberId: number, status: object) => void} onOpen
+   * @param {(memberId: number) => void} onOpen
    */
   wireBoard(boardsEl, onOpen) {
     boardsEl.addEventListener("click", (event) => {
@@ -264,9 +266,16 @@ const SessionDetailDialog = {
       .join("");
   },
 
+  /** section.board と同じ学年色をヘッダーに適用する。 */
+  applyGradeTheme(member) {
+    if (!this.head) return;
+    this.head.dataset.grade = member.grade || "other";
+  },
+
   fill(member, status) {
     const { dash, formatDuration, formatDayLabel } = DisplayUtils;
     const day = status.day || "";
+    this.applyGradeTheme(member);
     this.title.textContent = `${dash(member.name)} (${GradeConfig.label(member.grade)})`;
     this.meta.textContent = day ? formatDayLabel(day) : "";
     this.total.textContent = formatDuration(member.total_present_seconds);

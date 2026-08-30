@@ -1,8 +1,8 @@
 /** @typedef {{ id: number, name: string, grade: string, username: string, role: string, graduation_year: number | null }} Member */
 
 const PARTIALS = {
-  register: "/client/partials/members/register-dialog.html",
-  edit: "/client/partials/members/edit-dialog.html",
+  register: "/client/pages/members/register-dialog.html",
+  edit: "/client/pages/members/edit-dialog.html",
 };
 
 const els = {

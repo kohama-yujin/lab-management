@@ -1,4 +1,4 @@
-/* 在室管理ページ（ボードの詳細ボタン・セッション詳細ダイアログ） */
+/* 在室管理ページ（/） */
 
 .col-total {
   white-space: nowrap;
@@ -11,8 +11,8 @@
 .detail-btn {
   appearance: none;
   border: 1px solid var(--line);
-  background: #fff;
-  color: var(--m2-ink);
+  background: rgba(255, 255, 255, 0.75);
+  color: inherit;
   font-family: inherit;
   font-size: 0.78rem;
   font-weight: 600;
@@ -23,7 +23,7 @@
 }
 
 .detail-btn:hover {
-  background: #eef5fb;
+  background: #fff;
 }
 
 .col-detail {
@@ -35,7 +35,7 @@
   width: min(92vw, 36rem);
   padding: 0;
   border: 1px solid var(--line);
-  border-radius: 14px;
+  border-radius: 0;
   background: #fffdf8;
   color: var(--ink);
   box-shadow: 0 18px 48px rgba(28, 36, 32, 0.18);
@@ -54,35 +54,72 @@
   justify-content: space-between;
   align-items: flex-start;
   gap: 0.75rem;
-  padding: 1rem 1.1rem 0.75rem;
+  padding: 0.9rem 1rem 0.75rem;
   border-bottom: 1px solid var(--line);
+}
+
+.session-detail-head[data-grade="Teacher"] {
+  background: var(--teacher);
+  color: var(--teacher-ink);
+}
+
+.session-detail-head[data-grade="M2"] {
+  background: var(--m2);
+  color: var(--m2-ink);
+}
+
+.session-detail-head[data-grade="M1"] {
+  background: var(--m1);
+  color: var(--m1-ink);
+}
+
+.session-detail-head[data-grade="B4"] {
+  background: var(--b4);
+  color: var(--b4-ink);
+}
+
+.session-detail-head[data-grade="other"] {
+  background: var(--other);
+  color: var(--other-ink);
+}
+
+.session-detail-head[data-grade="graduated"] {
+  background: #e4e2dc;
+  color: #5a5852;
 }
 
 .session-detail-title {
   margin: 0;
-  /* font-family: "Shippori Mincho", serif; */
-  font-size: 1.2rem;
+  font-family: "Noto Sans JP", sans-serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
 }
 
 .session-detail-meta {
   margin: 0.3rem 0 0;
-  color: var(--muted);
   font-size: 0.86rem;
+  opacity: 0.78;
 }
 
 .session-detail-close {
   appearance: none;
   border: 0;
   background: transparent;
-  color: var(--muted);
+  color: inherit;
+  opacity: 0.65;
   font-size: 1.35rem;
   line-height: 1;
   cursor: pointer;
   padding: 0.1rem 0.35rem;
 }
 
+.session-detail-close:hover {
+  opacity: 1;
+}
+
 .session-detail-body {
-  padding: 1rem 1.1rem 1.15rem;
+  padding: 1rem 1rem 1.15rem;
 }
 
 .session-detail-notes {
