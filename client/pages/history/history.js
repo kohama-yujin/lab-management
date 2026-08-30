@@ -6,12 +6,15 @@ const els = {
   boards: document.getElementById("boards"),
   prevDay: document.getElementById("prev-day"),
   nextDay: document.getElementById("next-day"),
+  dialogRoot: document.getElementById("history-dialogs"),
 };
 
 /** @type {string[]} ISO dates, newest first */
 let dates = [];
 /** @type {number} index into dates */
 let dateIndex = 0;
+/** @type {object | null} */
+let lastStatus = null;
 
 const { dash, formatTime, formatDuration, formatDayLabel } = DisplayUtils;
 
@@ -45,6 +48,7 @@ function renderBoards(status) {
                   <th>到着</th>
                   <th>帰宅</th>
                   <th>総在室</th>
+                  <th class="col-detail"></th>
                 </tr>
               </thead>
               <tbody>
@@ -60,7 +64,16 @@ function renderBoards(status) {
                       <td>${dash(t.name)}</td>
                       <td>${arrived}</td>
                       <td>${left}</td>
-                      <td>${formatDuration(t.total_present_seconds)}</td>
+                      <td class="col-total">
+                        <span class="total-duration">${formatDuration(t.total_present_seconds)}</span>
+                      </td>
+                      <td class="col-detail">
+                        <button
+                          type="button"
+                          class="detail-btn"
+                          data-member-id="${t.member_id}"
+                        >詳細</button>
+                      </td>
                     </tr>`;
                   })
                   .join("")}
@@ -73,9 +86,13 @@ function renderBoards(status) {
       </section>`;
     })
     .join("");
+
+  SessionDetailDialog.refresh(status);
 }
 
 function renderEmpty(message) {
+  lastStatus = null;
+  SessionDetailDialog.close();
   els.viewDate.textContent = "—";
   els.subtitle.textContent = message;
   els.boards.innerHTML = `<p class="history-empty">${message}</p>`;
@@ -94,14 +111,17 @@ async function loadDay() {
   els.viewDate.textContent = formatDayLabel(day);
   updateNavButtons();
   els.subtitle.textContent = "読み込み中…";
+  SessionDetailDialog.close();
 
   try {
     const res = await fetch(`/history/${day}`, { cache: "no-store" });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const status = await res.json();
+    lastStatus = status;
     els.subtitle.textContent = `${status.count ?? 0}名の記録`;
     renderBoards(status);
   } catch (err) {
+    lastStatus = null;
     els.subtitle.textContent = `読み込み失敗: ${err.message}`;
     els.boards.innerHTML = "";
   }
@@ -109,6 +129,12 @@ async function loadDay() {
 
 async function init() {
   try {
+    await SessionDetailDialog.loadPartial(els.dialogRoot);
+    SessionDetailDialog.init();
+    SessionDetailDialog.wireBoard(els.boards, (memberId) => {
+      if (!lastStatus) return;
+      SessionDetailDialog.open(memberId, lastStatus);
+    });
     await GradeConfig.ensureLoaded();
     const res = await fetch("/history/dates", { cache: "no-store" });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
