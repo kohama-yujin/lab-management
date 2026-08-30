@@ -7,6 +7,9 @@
 -- attendance_sessions:
 --   出入りのたびに1行。end_at IS NULL は在室中。
 --   日次集計の境界は JST 0:00（アプリ側）。
+--
+-- member_grade_changes / member_role_changes:
+--   登録・変更のたびに1行追記。履歴日の学年・役職は「その日終わりまでの最新行」。
 
 CREATE TABLE roles (
     id              SMALLSERIAL     PRIMARY KEY,
@@ -50,6 +53,44 @@ CREATE TABLE members (
 
 CREATE INDEX members_role_id_idx ON members (role_id);
 CREATE INDEX members_grade_id_idx ON members (grade_id);
+
+
+-- 学年・役職の変更イベント（追記のみ。from が NULL なら初回登録）
+CREATE TABLE member_grade_changes (
+    id              BIGSERIAL       PRIMARY KEY,
+    member_id       BIGINT          NOT NULL,
+    grade_id_from   SMALLINT,
+    grade_id_to     SMALLINT        NOT NULL,
+    created_at      TIMESTAMPTZ     NOT NULL DEFAULT now(),
+
+    CONSTRAINT member_grade_changes_member_id_fkey
+        FOREIGN KEY (member_id) REFERENCES members (id) ON DELETE RESTRICT,
+    CONSTRAINT member_grade_changes_grade_id_from_fkey
+        FOREIGN KEY (grade_id_from) REFERENCES grades (id) ON DELETE RESTRICT,
+    CONSTRAINT member_grade_changes_grade_id_to_fkey
+        FOREIGN KEY (grade_id_to) REFERENCES grades (id) ON DELETE RESTRICT
+);
+
+CREATE INDEX member_grade_changes_member_created_idx
+    ON member_grade_changes (member_id, created_at DESC, id DESC);
+
+CREATE TABLE member_role_changes (
+    id              BIGSERIAL       PRIMARY KEY,
+    member_id       BIGINT          NOT NULL,
+    role_id_from    SMALLINT,
+    role_id_to      SMALLINT        NOT NULL,
+    created_at      TIMESTAMPTZ     NOT NULL DEFAULT now(),
+
+    CONSTRAINT member_role_changes_member_id_fkey
+        FOREIGN KEY (member_id) REFERENCES members (id) ON DELETE RESTRICT,
+    CONSTRAINT member_role_changes_role_id_from_fkey
+        FOREIGN KEY (role_id_from) REFERENCES roles (id) ON DELETE RESTRICT,
+    CONSTRAINT member_role_changes_role_id_to_fkey
+        FOREIGN KEY (role_id_to) REFERENCES roles (id) ON DELETE RESTRICT
+);
+
+CREATE INDEX member_role_changes_member_created_idx
+    ON member_role_changes (member_id, created_at DESC, id DESC);
 
 
 CREATE TABLE attendance_sessions (
