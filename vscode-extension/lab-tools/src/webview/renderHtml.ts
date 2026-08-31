@@ -5,7 +5,7 @@ import * as vscode from 'vscode';
  * Webview 用 HTML テンプレートを読み、URI / nonce を埋め込む。
  * @param webview 対象 Webview
  * @param extensionUri 拡張のルート URI
- * @param relativeDir media 配下の相対パス（例: ['webview']）
+ * @param relativeDir media 配下の相対パス（例: ['media', 'webview', 'settings']）
  * @param htmlFile HTML ファイル名
  * @param styleFile CSS ファイル名
  * @param scriptFile JS ファイル名

@@ -1,5 +1,5 @@
 import type { StatusPayload, StatusViewState } from '../api/types';
-import { findSelfMember } from './findMember';
+import { findMemberById } from './findMember';
 import { formatDurationChip, formatMemberTimeRange } from './format';
 
 /**
@@ -12,6 +12,8 @@ export function buildViewState(
 		error: string | null;
 		autoCheckIn: boolean;
 		username: string;
+		memberId: number | null;
+		memberError: string | null;
 	},
 ): StatusViewState {
 	if (!status) {
@@ -20,18 +22,20 @@ export function buildViewState(
 			error: options.error,
 			autoCheckIn: options.autoCheckIn,
 			username: options.username,
+			memberError: options.memberError,
 			self: null,
 			grades: [],
 		};
 	}
 
-	const selfRow = findSelfMember(status, options.username);
-	const self = selfRow
-		? {
-				present: selfRow.present,
-				durationLabel: formatDurationChip(selfRow.total_present_seconds),
-			}
-		: null;
+	const selfRow = options.memberId !== null ? findMemberById(status, options.memberId) : undefined;
+	const self =
+		options.memberId !== null && !options.memberError
+			? {
+					present: selfRow?.present ?? false,
+					durationLabel: formatDurationChip(selfRow?.total_present_seconds ?? 0),
+				}
+			: null;
 
 	const grades = status.grades.map((grade) => ({
 		grade,
@@ -41,7 +45,7 @@ export function buildViewState(
 			timeRange: formatMemberTimeRange(row),
 			present: row.present,
 			durationLabel: formatDurationChip(row.total_present_seconds),
-			isSelf: options.username.trim() !== '' && row.name.trim() === options.username.trim(),
+			isSelf: options.memberId !== null && row.member_id === options.memberId,
 		})),
 	}));
 
@@ -50,6 +54,7 @@ export function buildViewState(
 		error: options.error,
 		autoCheckIn: options.autoCheckIn,
 		username: options.username,
+		memberError: options.memberError,
 		self,
 		grades,
 	};

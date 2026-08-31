@@ -1,9 +1,10 @@
 import * as vscode from 'vscode';
+import { fetchMemberByCredentials } from '../api/memberClient';
 import { fetchStatus } from '../api/statusClient';
 import type { StatusPayload } from '../api/types';
 import { buildViewState } from '../attendance/buildViewState';
 import { confirmCheckIn, confirmCheckOut } from '../attendance/dialogs';
-import { findSelfMember } from '../attendance/findMember';
+import { findMemberById } from '../attendance/findMember';
 import type { SettingsStore } from '../config/settingsStore';
 import { AttendanceStatusBar } from '../statusBar/attendanceStatusBar';
 import { StatusWebviewProvider } from '../views/statusWebviewProvider';
@@ -16,6 +17,8 @@ export class StatusController implements vscode.Disposable {
 	readonly statusBar: AttendanceStatusBar;
 
 	private status: StatusPayload | null = null;
+	private memberId: number | null = null;
+	private memberError: string | null = null;
 	private error: string | null = null;
 	private loading = false;
 
@@ -35,7 +38,7 @@ export class StatusController implements vscode.Disposable {
 	}
 
 	/**
-	 * GET /status で再取得し UI を更新する。
+	 * GET /status と GET /member で再取得し UI を更新する。
 	 */
 	async reload(): Promise<void> {
 		this.loading = true;
@@ -48,7 +51,16 @@ export class StatusController implements vscode.Disposable {
 		if (result.ok) {
 			this.status = result.data;
 			this.error = null;
+			await this.resolveMember(
+				settings.username,
+				settings.serverIp,
+				settings.publicUrl,
+				result.baseUrl,
+			);
 		} else {
+			this.status = null;
+			this.memberId = null;
+			this.memberError = null;
 			this.error = result.message;
 		}
 		await this.pushUi();
@@ -66,21 +78,53 @@ export class StatusController implements vscode.Disposable {
 			return;
 		}
 
-		const self = findSelfMember(this.status, settings.username);
-		if (!self) {
-			void vscode.window.showErrorMessage(
-				settings.username
-					? `メンバー「${settings.username}」が在室ボードに見つかりません`
-					: 'ユーザー名を設定してください',
-			);
+		if (!settings.username) {
+			void vscode.window.showErrorMessage('ユーザー名を設定してください');
+			return;
+		}
+		if (this.memberError || this.memberId === null) {
+			void vscode.window.showErrorMessage(this.memberError ?? 'メンバー情報を取得できません');
 			return;
 		}
 
-		if (self.present) {
+		const self = findMemberById(this.status, this.memberId);
+		const present = self?.present ?? false;
+		if (present) {
 			await this.handleCheckOut();
 		} else {
 			await this.handleCheckIn();
 		}
+	}
+
+	private async resolveMember(
+		username: string,
+		serverIp: string,
+		publicUrl: string,
+		preferredBaseUrl: string,
+	): Promise<void> {
+		const key = username.trim();
+		if (!key) {
+			this.memberId = null;
+			this.memberError = null;
+			return;
+		}
+
+		const { password } = await this.store.getSecrets();
+		const result = await fetchMemberByCredentials(
+			key,
+			password,
+			serverIp,
+			publicUrl,
+			preferredBaseUrl,
+		);
+		if (result.ok) {
+			this.memberId = result.data.member.id;
+			this.memberError = null;
+			return;
+		}
+
+		this.memberId = null;
+		this.memberError = result.message;
 	}
 
 	private async handleCheckIn(): Promise<void> {
@@ -125,8 +169,10 @@ export class StatusController implements vscode.Disposable {
 			error: this.error,
 			autoCheckIn: settings.autoCheckIn,
 			username: settings.username,
+			memberId: this.memberId,
+			memberError: this.memberError,
 		});
-		this.statusBar.update(this.status, settings.username, this.error);
+		this.statusBar.update(this.status, this.memberId, this.memberError, settings.username, this.error);
 		await this.webviewProvider.postState(state);
 	}
 

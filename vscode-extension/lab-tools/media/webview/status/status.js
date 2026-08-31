@@ -2,11 +2,9 @@
 (function () {
   // @ts-ignore VS Code Webview が注入する API
   const vscode = acquireVsCodeApi();
-  const types = require('../../../src/api/types');
 
-  /** @type {types.StatusViewState | null} */
+  /** @type {import('../../../src/api/types').StatusViewState | null} */
   let state = null;
-
   const els = {
     banner: /** @type {HTMLElement} */ (document.getElementById('banner')),
     selfArea: /** @type {HTMLElement} */ (document.getElementById('self-area')),
@@ -25,7 +23,7 @@
   }
 
   /**
-   * @param {types.StatusViewState} s
+   * @param {import('../../../src/api/types').StatusViewState} s
    */
   function render(s) {
     state = s;
@@ -47,7 +45,7 @@
   }
 
   /**
-   * @param {types.StatusViewState} s
+   * @param {import('../../../src/api/types').StatusViewState} s
    */
   function renderSelf(s) {
     if (!s.username) {
@@ -55,8 +53,13 @@
       return;
     }
 
+    if (s.memberError) {
+      els.selfArea.innerHTML = `<p class="hint">${escapeHtml(s.memberError)}</p>`;
+      return;
+    }
+
     if (!s.self) {
-      els.selfArea.innerHTML = `<p class="hint">メンバー「${escapeHtml(s.username)}」が見つかりません</p>`;
+      els.selfArea.innerHTML = '<p class="hint">メンバー情報を取得できません</p>';
       return;
     }
 
@@ -79,7 +82,7 @@
   }
 
   /**
-   * @param {types.StatusViewState} s
+   * @param {import('../../../src/api/types').StatusViewState} s
    */
   function renderBoards(s) {
     if (s.grades.length === 0) {

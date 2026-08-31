@@ -59,24 +59,6 @@
         }
       }
     },
-    "colors": [
-      {
-        "id": "labTools.statusPresent",
-        "description": "在室中のステータスバー背景",
-        "defaults": {
-          "dark": "#1f6b4566",
-          "light": "#1f6b4533"
-        }
-      },
-      {
-        "id": "labTools.statusAway",
-        "description": "不在のステータスバー背景",
-        "defaults": {
-          "dark": "#a8323266",
-          "light": "#a8323233"
-        }
-      }
-    ],
     "viewsContainers": {
       "activitybar": [
         {

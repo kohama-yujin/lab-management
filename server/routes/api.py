@@ -9,7 +9,7 @@ from server.db import StoreError
 from server.stores import attendance as attendance_store
 from server.stores.grade import get_grade_order
 from server.stores.history import get_history_for_day, list_history_dates
-from server.stores.member import create_member, fetch_member_by_username, list_active_members, list_graduated_members, update_member
+from server.stores.member import create_member, fetch_member_by_credentials, list_active_members, list_graduated_members, update_member
 from server.stores.role import get_roles
 from server.stores.status import get_today_status
 
@@ -99,11 +99,14 @@ def get_role() -> dict[str, list[dict[str, str]]]:
 
 
 @api_router.get("/member")
-def get_member(username: str = "") -> dict[str, Any]:
-    member = fetch_member_by_username(str(username))
-    if not member:
-        raise ApiError("メンバーが見つかりません", 404)
-    return {"member": member}
+def get_member(username: str = "", password: str = "") -> dict[str, Any]:
+    try:
+        member = fetch_member_by_credentials(str(username), str(password))
+    except StoreError as exc:
+        raise ApiError(exc.message, exc.status_code)
+    except Exception:
+        raise ApiError("メンバーの取得に失敗しました", 500)
+    return {"ok": True, "member": member}
 
 @api_router.get("/members/list")
 def members_list(

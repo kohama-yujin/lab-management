@@ -15,6 +15,7 @@ type MessageHandler = (msg: WebviewToExt) => void | Promise<void>;
  */
 export class StatusWebviewProvider implements vscode.WebviewViewProvider {
 	private view: vscode.WebviewView | undefined;
+	private lastState: StatusViewState | null = null;
 
 	constructor(
 		private readonly extensionUri: vscode.Uri,
@@ -45,12 +46,17 @@ export class StatusWebviewProvider implements vscode.WebviewViewProvider {
 		webviewView.webview.onDidReceiveMessage((msg: WebviewToExt) => {
 			void this.onMessage(msg);
 		});
+
+		if (this.lastState) {
+			void webviewView.webview.postMessage({ type: 'update', state: this.lastState });
+		}
 	}
 
 	/**
 	 * 表示状態を Webview に送る。
 	 */
 	async postState(state: StatusViewState): Promise<void> {
+		this.lastState = state;
 		await this.view?.webview.postMessage({ type: 'update', state });
 	}
 

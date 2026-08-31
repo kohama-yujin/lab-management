@@ -1,16 +1,12 @@
 import type { DayMemberRow, StatusPayload } from '../api/types';
 
 /**
- * 設定 username と一致するメンバー行を在室ボードから探す。
+ * member_id で在室ボードからメンバー行を探す。
  */
-export function findSelfMember(status: StatusPayload, username: string): DayMemberRow | undefined {
-	const key = username.trim();
-	if (!key) {
-		return undefined;
-	}
+export function findMemberById(status: StatusPayload, memberId: number): DayMemberRow | undefined {
 	for (const grade of status.grades) {
 		const rows = status.by_grade[grade] ?? [];
-		const found = rows.find((row) => row.name.trim() === key);
+		const found = rows.find((row) => row.member_id === memberId);
 		if (found) {
 			return found;
 		}

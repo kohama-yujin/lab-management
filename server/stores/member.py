@@ -12,7 +12,7 @@ from server.member_validation import (
     normalize_username,
     validate_password,
 )
-from server.password_utils import hash_password
+from server.password_utils import hash_password, verify_password
 from server.stores.grade import normalize_grade_code
 from server.stores.role import get_roles
 
@@ -169,19 +169,28 @@ def _normalize_graduation_year(value: int | None) -> int | None:
     return value
 
 
-def fetch_member_by_username(username: str) -> MemberItem | None:
-    """ユーザー名からメンバーを取得する。"""
+def fetch_member_by_credentials(username: str, password: str) -> MemberItem:
+    """認証情報からメンバーを取得する。"""
+    normalized = normalize_username(username)
+    if not normalized:
+        raise StoreError("ユーザー名は必須です", 400)
+    if not password:
+        raise StoreError("パスワードは必須です", 400)
+
     with connect() as conn:
         with conn.cursor() as cur:
             cur.execute(
-                f"{_MEMBER_SELECT} WHERE m.username = %s",
-                (username,),
+                "SELECT id, password_hash FROM members WHERE username = %s",
+                (normalized,),
             )
             row = cur.fetchone()
-            if not row:
-                return None
-            return _row_to_member(row)
-    
+            if not row or not verify_password(password, str(row[1])):
+                raise StoreError("ユーザー名またはパスワードが間違っています", 401)
+
+            member = _fetch_member(cur, int(row[0]))
+            if member is None:
+                raise StoreError("ユーザー名またはパスワードが間違っています", 401)
+            return member
 
 def list_active_members() -> list[MemberItem]:
     """在学中メンバー一覧を返す。"""

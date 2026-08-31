@@ -29,7 +29,7 @@ export class SettingsPanel {
 		this.panel.webview.html = renderWebviewHtml(
 			this.panel.webview,
 			extensionUri,
-			['media', 'webview'],
+			['media', 'webview', 'settings'],
 			'settings.html',
 			'settings.css',
 			'settings.js',
@@ -55,7 +55,7 @@ export class SettingsPanel {
 			return;
 		}
 
-		const webviewRoot = vscode.Uri.joinPath(context.extensionUri, 'media', 'webview');
+		const webviewRoot = vscode.Uri.joinPath(context.extensionUri, 'media', 'webview', 'settings');
 		const panel = vscode.window.createWebviewPanel(
 			SettingsPanel.viewType,
 			'Lab Tools 設定',

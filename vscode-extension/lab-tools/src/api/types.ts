@@ -25,6 +25,23 @@ export type StatusPayload = {
 };
 
 /**
+ * GET /member レスポンスのメンバー。
+ */
+export type MemberItem = {
+	id: number;
+	name: string;
+	grade: string;
+	username: string;
+	role: string;
+	graduation_year: number | null;
+};
+
+export type MemberPayload = {
+	ok?: boolean;
+	member: MemberItem;
+};
+
+/**
  * サイドバー Webview へ送る表示用データ。
  */
 export type StatusViewState = {
@@ -32,6 +49,8 @@ export type StatusViewState = {
 	error: string | null;
 	autoCheckIn: boolean;
 	username: string;
+	/** GET /member に失敗したときのメッセージ */
+	memberError: string | null;
 	self: {
 		present: boolean;
 		durationLabel: string;
