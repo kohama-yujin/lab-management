@@ -58,6 +58,20 @@ input:focus {
   color: var(--vscode-descriptionForeground);
 }
 
+.row-checkbox {
+  align-items: start;
+}
+
+.checkbox-wrap {
+  display: flex;
+  flex-direction: row;
+  gap: 4px;
+}
+
+.checkbox-wrap input[type="checkbox"] {
+  width: auto;
+}
+
 .actions {
   display: flex;
   gap: 8px;

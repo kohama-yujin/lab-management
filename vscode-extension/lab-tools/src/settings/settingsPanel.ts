@@ -6,8 +6,8 @@ import { testConnection } from './connectionTest';
 
 type WebviewToExt =
 	| { type: 'ready' }
-	| { type: 'save'; username: string; serverIp: string; publicUrl: string; password: string; apiKey: string }
-	| { type: 'test'; username: string; serverIp: string; publicUrl: string; password: string; apiKey: string };
+	| { type: 'save'; username: string; serverIp: string; publicUrl: string; autoCheckIn: boolean; password: string; apiKey: string }
+	| { type: 'test'; username: string; serverIp: string; publicUrl: string; autoCheckIn: boolean; password: string; apiKey: string };
 
 /**
  * 設定用 Webview パネルを開く・再利用する。
@@ -100,6 +100,7 @@ export class SettingsPanel {
 				username: msg.username,
 				serverIp: msg.serverIp,
 				publicUrl: msg.publicUrl,
+				autoCheckIn: msg.autoCheckIn,
 				password: msg.password,
 				apiKey: msg.apiKey,
 			});
@@ -122,6 +123,7 @@ export class SettingsPanel {
 					username: msg.username,
 					serverIp: msg.serverIp,
 					publicUrl: result.publicUrl,
+					autoCheckIn: msg.autoCheckIn,
 					password: msg.password,
 					apiKey: msg.apiKey,
 				});

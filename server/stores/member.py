@@ -169,6 +169,20 @@ def _normalize_graduation_year(value: int | None) -> int | None:
     return value
 
 
+def fetch_member_by_username(username: str) -> MemberItem | None:
+    """ユーザー名からメンバーを取得する。"""
+    with connect() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                f"{_MEMBER_SELECT} WHERE m.username = %s",
+                (username,),
+            )
+            row = cur.fetchone()
+            if not row:
+                return None
+            return _row_to_member(row)
+    
+
 def list_active_members() -> list[MemberItem]:
     """在学中メンバー一覧を返す。"""
     with connect() as conn:
