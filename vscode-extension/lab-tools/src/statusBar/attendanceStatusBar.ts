@@ -3,6 +3,8 @@ import type { StatusPayload } from '../api/types';
 import { findMemberById, listPresentMemberNames } from '../attendance/findMember';
 import { formatDurationChip } from '../attendance/format';
 import { COMMAND_PREFIX } from '../config/constants';
+import type { LabError } from '../errors/labError';
+import { errorTooltip, statusBarLabel } from '../errors/labError';
 
 const WARNING_FG = new vscode.ThemeColor('statusBarItem.warningForeground');
 const ERROR_FG = new vscode.ThemeColor('statusBarItem.errorForeground');
@@ -60,17 +62,29 @@ export class AttendanceStatusBar {
 	update(
 		status: StatusPayload | null,
 		memberId: number | null,
-		memberError: string | null,
-		username: string,
-		error: string | null,
+		_viewUsername: string,
+		viewError: LabError | null,
 	): void {
-		if (error) {
-			this.myItem.text = '$(error) 在室: 取得失敗';
-			this.myItem.tooltip = error;
-			this.setMyItemErrorStyle();
-			this.countItem.text = '$(question) 在室 ?人';
-			this.countItem.tooltip = error;
-			this.resetCountItemStyle();
+		if (viewError) {
+			const label = statusBarLabel(viewError);
+			this.myItem.text = label.text;
+			this.myItem.tooltip = errorTooltip(viewError);
+			if (label.style === 'warning') {
+				this.setMyItemWarningStyle();
+			} else {
+				this.setMyItemErrorStyle();
+			}
+			if (!status) {
+				this.countItem.text = '$(question) 在室 ?人';
+				this.countItem.tooltip = errorTooltip(viewError);
+				this.resetCountItemStyle();
+			} else {
+				const presentNames = listPresentMemberNames(status);
+				this.countItem.text = `$(home) 在室 ${status.count}人`;
+				this.countItem.tooltip =
+					presentNames.length > 0 ? presentNames.join(', ') : '在室者なし';
+				this.resetCountItemStyle();
+			}
 			return;
 		}
 
@@ -84,13 +98,9 @@ export class AttendanceStatusBar {
 			return;
 		}
 
-		if (!username.trim()) {
-			this.myItem.text = '$(warning) 在室: 未設定';
-			this.myItem.tooltip = 'ユーザー名を設定してください';
-			this.setMyItemWarningStyle();
-		} else if (memberError || memberId === null) {
+		if (memberId === null) {
 			this.myItem.text = '$(warning) 在室: 未登録';
-			this.myItem.tooltip = memberError ?? `メンバー「${username}」が見つかりません`;
+			this.myItem.tooltip = 'メンバー情報を取得できません';
 			this.setMyItemWarningStyle();
 		} else {
 			const self = findMemberById(status, memberId);
@@ -120,3 +130,4 @@ export class AttendanceStatusBar {
 		}
 	}
 }
+

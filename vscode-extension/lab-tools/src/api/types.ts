@@ -1,3 +1,5 @@
+import type { LabErrorView } from '../errors/labError';
+
 /**
  * GET /status のメンバー1行。
  */
@@ -46,11 +48,10 @@ export type MemberPayload = {
  */
 export type StatusViewState = {
 	loading: boolean;
-	error: string | null;
+	/** 設定・接続・認証などの統一エラー（null なら正常） */
+	viewError: LabErrorView | null;
 	autoCheckIn: boolean;
 	username: string;
-	/** GET /member に失敗したときのメッセージ */
-	memberError: string | null;
 	self: {
 		present: boolean;
 		durationLabel: string;

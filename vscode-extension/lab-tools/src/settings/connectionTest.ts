@@ -1,3 +1,6 @@
+import { LabErrors, mapFetchFailures, mapHttpError, parseFetchErrorMessage } from '../errors/labError';
+import type { LabError } from '../errors/labError';
+
 /**
  * ベース URL を正規化する（末尾スラッシュ除去、スキーム補完）。
  */
@@ -24,7 +27,10 @@ type HealthResponse = {
 export async function testConnection(
 	serverIp: string,
 	publicUrl: string,
-): Promise<{ ok: true; used: 'serverIp' | 'publicUrl'; baseUrl: string; publicUrl: string } | { ok: false; message: string }> {
+): Promise<
+	| { ok: true; used: 'serverIp' | 'publicUrl'; baseUrl: string; publicUrl: string }
+	| { ok: false; error: LabError }
+> {
 	const candidates: Array<{ kind: 'serverIp' | 'publicUrl'; url: string }> = [];
 	const ip = normalizeBaseUrl(serverIp);
 	const pub = normalizeBaseUrl(publicUrl);
@@ -35,7 +41,7 @@ export async function testConnection(
 		candidates.push({ kind: 'publicUrl', url: pub });
 	}
 	if (candidates.length === 0) {
-		return { ok: false, message: 'serverIp または public-url を入力してください' };
+		return { ok: false, error: LabErrors.configServer() };
 	}
 
 	const errors: string[] = [];
@@ -58,7 +64,8 @@ export async function testConnection(
 				continue;
 			}
 			if (!body.ok) {
-				errors.push(`${candidate.kind}: ${body.message ?? 'ok が false'}`);
+				const msg = body.message ?? 'ok が false';
+				errors.push(`${candidate.kind}: ${msg}`);
 				continue;
 			}
 
@@ -74,5 +81,14 @@ export async function testConnection(
 			errors.push(`${candidate.kind}: ${msg}`);
 		}
 	}
-	return { ok: false, message: errors.join(' / ') };
+
+	if (errors.length === 1) {
+		const detail = parseFetchErrorMessage(errors[0]);
+		if (detail.startsWith('HTTP') || detail === '無効な JSON レスポンス') {
+			return { ok: false, error: LabErrors.network(errors[0]) };
+		}
+		return { ok: false, error: mapHttpError(0, detail) };
+	}
+
+	return { ok: false, error: mapFetchFailures(errors) };
 }

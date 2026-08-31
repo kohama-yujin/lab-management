@@ -32,10 +32,10 @@
       els.banner.hidden = false;
       els.banner.className = 'banner loading';
       els.banner.textContent = '読み込み中…';
-    } else if (s.error) {
+    } else if (s.viewError) {
       els.banner.hidden = false;
-      els.banner.className = 'banner';
-      els.banner.textContent = s.error;
+      els.banner.className = 'banner error';
+      els.banner.textContent = s.viewError.userMessage;
     } else {
       els.banner.hidden = true;
     }
@@ -48,18 +48,13 @@
    * @param {import('../../../src/api/types').StatusViewState} s
    */
   function renderSelf(s) {
-    if (!s.username) {
-      els.selfArea.innerHTML = '<p class="hint">設定画面でユーザー名を設定してください</p>';
-      return;
-    }
-
-    if (s.memberError) {
-      els.selfArea.innerHTML = `<p class="hint">${escapeHtml(s.memberError)}</p>`;
+    if (s.viewError) {
+      els.selfArea.innerHTML = '';
       return;
     }
 
     if (!s.self) {
-      els.selfArea.innerHTML = '<p class="hint">メンバー情報を取得できません</p>';
+      els.selfArea.innerHTML = '';
       return;
     }
 
@@ -131,3 +126,4 @@
 
   vscode.postMessage({ type: 'ready' });
 })();
+

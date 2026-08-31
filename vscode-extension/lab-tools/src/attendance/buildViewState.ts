@@ -1,3 +1,5 @@
+import type { LabError } from '../errors/labError';
+import { LabErrors, toViewError } from '../errors/labError';
 import type { StatusPayload, StatusViewState } from '../api/types';
 import { findMemberById } from './findMember';
 import { formatDurationChip, formatMemberTimeRange } from './format';
@@ -9,20 +11,18 @@ export function buildViewState(
 	status: StatusPayload | null,
 	options: {
 		loading: boolean;
-		error: string | null;
+		viewError: LabError | null;
 		autoCheckIn: boolean;
 		username: string;
 		memberId: number | null;
-		memberError: string | null;
 	},
 ): StatusViewState {
 	if (!status) {
 		return {
 			loading: options.loading,
-			error: options.error,
+			viewError: toViewError(options.viewError),
 			autoCheckIn: options.autoCheckIn,
 			username: options.username,
-			memberError: options.memberError,
 			self: null,
 			grades: [],
 		};
@@ -30,7 +30,7 @@ export function buildViewState(
 
 	const selfRow = options.memberId !== null ? findMemberById(status, options.memberId) : undefined;
 	const self =
-		options.memberId !== null && !options.memberError
+		options.memberId !== null && !options.viewError
 			? {
 					present: selfRow?.present ?? false,
 					durationLabel: formatDurationChip(selfRow?.total_present_seconds ?? 0),
@@ -51,11 +51,28 @@ export function buildViewState(
 
 	return {
 		loading: options.loading,
-		error: options.error,
+		viewError: toViewError(options.viewError),
 		autoCheckIn: options.autoCheckIn,
 		username: options.username,
-		memberError: options.memberError,
 		self,
 		grades,
 	};
 }
+
+/**
+ * 表示用の effective エラーを決定する（username 未設定を含む）。
+ */
+export function resolveViewError(
+	status: StatusPayload | null,
+	viewError: LabError | null,
+	username: string,
+): LabError | null {
+	if (viewError) {
+		return viewError;
+	}
+	if (status && !username.trim()) {
+		return LabErrors.configUsername();
+	}
+	return null;
+}
+

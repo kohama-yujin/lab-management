@@ -171,11 +171,11 @@ def _normalize_graduation_year(value: int | None) -> int | None:
 
 def fetch_member_by_credentials(username: str, password: str) -> MemberItem:
     """認証情報からメンバーを取得する。"""
-    normalized = normalize_username(username)
-    if not normalized:
+    if not username:
         raise StoreError("ユーザー名は必須です", 400)
     if not password:
         raise StoreError("パスワードは必須です", 400)
+    normalized = _normalize_username(username)
 
     with connect() as conn:
         with conn.cursor() as cur:

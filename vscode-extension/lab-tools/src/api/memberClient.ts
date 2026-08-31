@@ -1,3 +1,4 @@
+import { LabErrors } from '../errors/labError';
 import { fetchGetJson } from './http';
 import type { MemberPayload } from './types';
 
@@ -13,10 +14,10 @@ export async function fetchMemberByCredentials(
 ) {
 	const key = username.trim();
 	if (!key) {
-		return { ok: false as const, message: 'ユーザー名を設定してください' };
+		return { ok: false as const, error: LabErrors.configUsername() };
 	}
 	if (!password) {
-		return { ok: false as const, message: 'パスワードを設定してください' };
+		return { ok: false as const, error: LabErrors.configPassword() };
 	}
 	const query = `username=${encodeURIComponent(key)}&password=${encodeURIComponent(password)}`;
 	return fetchGetJson<MemberPayload>(`/member?${query}`, serverIp, publicUrl, {
@@ -24,3 +25,4 @@ export async function fetchMemberByCredentials(
 		preferredOnly: Boolean(preferredBaseUrl),
 	});
 }
+

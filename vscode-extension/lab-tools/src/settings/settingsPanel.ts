@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import type { SettingsStore } from '../config/settingsStore';
 import { CONFIG_SECTION } from '../config/keys';
 import { renderWebviewHtml } from '../webview/renderHtml';
+import { mapUnknownError, displayMessage } from '../errors/labError';
 import { testConnection } from './connectionTest';
 
 type WebviewToExt =
@@ -107,8 +108,12 @@ export class SettingsPanel {
 			await this.pushSettings();
 			await this.panel.webview.postMessage({ type: 'status', kind: 'ok', text: '設定を保存しました' });
 		} catch (err) {
-			const text = err instanceof Error ? err.message : String(err);
-			await this.panel.webview.postMessage({ type: 'status', kind: 'error', text: `保存に失敗しました: ${text}` });
+			const labError = mapUnknownError(err);
+			await this.panel.webview.postMessage({
+				type: 'status',
+				kind: 'error',
+				text: displayMessage(labError),
+			});
 		}
 	}
 
@@ -134,7 +139,7 @@ export class SettingsPanel {
 			await this.panel.webview.postMessage({ type: 'status', kind: 'ok', text });
 			return;
 		}
-		await this.panel.webview.postMessage({ type: 'status', kind: 'error', text: `接続失敗: ${result.message}` });
+		await this.panel.webview.postMessage({ type: 'status', kind: 'error', text: displayMessage(result.error) });
 	}
 
 	private dispose(): void {

@@ -2,10 +2,12 @@ import * as vscode from 'vscode';
 import { fetchMemberByCredentials } from '../api/memberClient';
 import { fetchStatus } from '../api/statusClient';
 import type { StatusPayload } from '../api/types';
-import { buildViewState } from '../attendance/buildViewState';
+import { buildViewState, resolveViewError } from '../attendance/buildViewState';
 import { confirmCheckIn, confirmCheckOut } from '../attendance/dialogs';
 import { findMemberById } from '../attendance/findMember';
 import type { SettingsStore } from '../config/settingsStore';
+import type { LabError } from '../errors/labError';
+import { displayMessage } from '../errors/labError';
 import { AttendanceStatusBar } from '../statusBar/attendanceStatusBar';
 import { StatusWebviewProvider } from '../views/statusWebviewProvider';
 
@@ -18,8 +20,7 @@ export class StatusController implements vscode.Disposable {
 
 	private status: StatusPayload | null = null;
 	private memberId: number | null = null;
-	private memberError: string | null = null;
-	private error: string | null = null;
+	private viewError: LabError | null = null;
 	private loading = false;
 
 	constructor(
@@ -50,7 +51,7 @@ export class StatusController implements vscode.Disposable {
 		this.loading = false;
 		if (result.ok) {
 			this.status = result.data;
-			this.error = null;
+			this.viewError = null;
 			await this.resolveMember(
 				settings.username,
 				settings.serverIp,
@@ -60,8 +61,7 @@ export class StatusController implements vscode.Disposable {
 		} else {
 			this.status = null;
 			this.memberId = null;
-			this.memberError = null;
-			this.error = result.message;
+			this.viewError = result.error;
 		}
 		await this.pushUi();
 	}
@@ -71,23 +71,16 @@ export class StatusController implements vscode.Disposable {
 	 */
 	async handleToggleFromStatusBar(): Promise<void> {
 		const settings = await this.store.get();
-		if (!this.status) {
-			if (this.error) {
-				void vscode.window.showErrorMessage(`在室状況の取得に失敗しています: ${this.error}`);
+		const effectiveError = resolveViewError(this.status, this.viewError, settings.username);
+
+		if (!this.status || effectiveError) {
+			if (effectiveError) {
+				void vscode.window.showErrorMessage(displayMessage(effectiveError));
 			}
 			return;
 		}
 
-		if (!settings.username) {
-			void vscode.window.showErrorMessage('ユーザー名を設定してください');
-			return;
-		}
-		if (this.memberError || this.memberId === null) {
-			void vscode.window.showErrorMessage(this.memberError ?? 'メンバー情報を取得できません');
-			return;
-		}
-
-		const self = findMemberById(this.status, this.memberId);
+		const self = findMemberById(this.status, this.memberId!);
 		const present = self?.present ?? false;
 		if (present) {
 			await this.handleCheckOut();
@@ -105,7 +98,6 @@ export class StatusController implements vscode.Disposable {
 		const key = username.trim();
 		if (!key) {
 			this.memberId = null;
-			this.memberError = null;
 			return;
 		}
 
@@ -119,12 +111,11 @@ export class StatusController implements vscode.Disposable {
 		);
 		if (result.ok) {
 			this.memberId = result.data.member.id;
-			this.memberError = null;
 			return;
 		}
 
 		this.memberId = null;
-		this.memberError = result.message;
+		this.viewError = result.error;
 	}
 
 	private async handleCheckIn(): Promise<void> {
@@ -149,7 +140,7 @@ export class StatusController implements vscode.Disposable {
 		switch (msg.type) {
 			case 'ready':
 				await this.pushUi();
-				if (!this.status && !this.error) {
+				if (!this.status && !this.viewError) {
 					await this.reload();
 				}
 				return;
@@ -164,15 +155,15 @@ export class StatusController implements vscode.Disposable {
 
 	private async pushUi(): Promise<void> {
 		const settings = await this.store.get();
+		const effectiveError = resolveViewError(this.status, this.viewError, settings.username);
 		const state = buildViewState(this.status, {
 			loading: this.loading,
-			error: this.error,
+			viewError: effectiveError,
 			autoCheckIn: settings.autoCheckIn,
 			username: settings.username,
 			memberId: this.memberId,
-			memberError: this.memberError,
 		});
-		this.statusBar.update(this.status, this.memberId, this.memberError, settings.username, this.error);
+		this.statusBar.update(this.status, this.memberId, settings.username, effectiveError);
 		await this.webviewProvider.postState(state);
 	}
 
@@ -180,3 +171,4 @@ export class StatusController implements vscode.Disposable {
 		this.statusBar.dispose();
 	}
 }
+

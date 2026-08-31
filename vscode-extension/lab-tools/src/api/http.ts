@@ -1,7 +1,15 @@
+import { LabErrors, mapFetchFailures, mapHttpError } from '../errors/labError';
+import type { LabError } from '../errors/labError';
 import { normalizeBaseUrl } from '../settings/connectionTest';
 
 type FetchOk<T> = { ok: true; data: T; baseUrl: string };
-type FetchErr = { ok: false; message: string };
+type FetchErr = { ok: false; error: LabError };
+
+type FetchAttemptError = {
+	baseUrl: string;
+	status: number;
+	message: string;
+};
 
 export type FetchGetJsonOptions = {
 	preferredBaseUrl?: string;
@@ -36,7 +44,7 @@ export async function fetchGetJson<T>(
 ): Promise<FetchOk<T> | FetchErr> {
 	const candidates = resolveBaseUrls(serverIp, publicUrl);
 	if (candidates.length === 0) {
-		return { ok: false, message: 'サーバーIP または 公開URL を設定してください' };
+		return { ok: false, error: LabErrors.configServer() };
 	}
 
 	const preferredBaseUrl = options?.preferredBaseUrl;
@@ -51,7 +59,7 @@ export async function fetchGetJson<T>(
 		ordered = candidates;
 	}
 
-	const errors: string[] = [];
+	const errors: FetchAttemptError[] = [];
 	for (const baseUrl of ordered) {
 		try {
 			const res = await fetch(`${baseUrl}${path}`, {
@@ -60,24 +68,33 @@ export async function fetchGetJson<T>(
 				signal: AbortSignal.timeout(8000),
 			});
 			if (!res.ok) {
-				let detail = `HTTP ${res.status}`;
+				let message = `HTTP ${res.status}`;
 				try {
 					const body = (await res.json()) as { message?: string };
 					if (body.message) {
-						detail = body.message;
+						message = body.message;
 					}
 				} catch {
 					// JSON でないエラー応答は HTTP コードのみ
 				}
-				errors.push(`${baseUrl}: ${detail}`);
+				errors.push({ baseUrl, status: res.status, message });
 				continue;
 			}
 			const data = (await res.json()) as T;
 			return { ok: true, data, baseUrl };
 		} catch (err) {
 			const msg = err instanceof Error ? err.message : String(err);
-			errors.push(`${baseUrl}: ${msg}`);
+			errors.push({ baseUrl, status: 0, message: msg });
 		}
 	}
-	return { ok: false, message: errors.join(' / ') };
+
+	if (errors.length === 1) {
+		const entry = errors[0];
+		return { ok: false, error: mapHttpError(entry.status, entry.message) };
+	}
+
+	return {
+		ok: false,
+		error: mapFetchFailures(errors.map((e) => `${e.baseUrl}: ${e.message}`)),
+	};
 }

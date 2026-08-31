@@ -6,6 +6,7 @@ from fastapi.responses import JSONResponse, PlainTextResponse
 
 from server.config import load_api_key, load_public_tunnel_url
 from server.db import StoreError
+from server.member_validation import MemberValidationError
 from server.stores import attendance as attendance_store
 from server.stores.grade import get_grade_order
 from server.stores.history import get_history_for_day, list_history_dates
@@ -103,6 +104,8 @@ def get_member(username: str = "", password: str = "") -> dict[str, Any]:
     try:
         member = fetch_member_by_credentials(str(username), str(password))
     except StoreError as exc:
+        raise ApiError(exc.message, exc.status_code)
+    except MemberValidationError as exc:
         raise ApiError(exc.message, exc.status_code)
     except Exception:
         raise ApiError("メンバーの取得に失敗しました", 500)
