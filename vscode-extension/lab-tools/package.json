@@ -26,6 +26,11 @@
         "icon": "$(refresh)"
       },
       {
+        "command": "lab-tools.openAttendancePage",
+        "title": "Lab Tools: 在室管理ページを外部ブラウザで開く",
+        "icon": "$(link-external)"
+      },
+      {
         "command": "lab-tools.toggleAttendance",
         "title": "Lab Tools: 入退室"
       },
@@ -85,9 +90,14 @@
           "group": "navigation@1"
         },
         {
-          "command": "lab-tools.openSettings",
+          "command": "lab-tools.openAttendancePage",
           "when": "view == labTools.statusView",
           "group": "navigation@2"
+        },
+        {
+          "command": "lab-tools.openSettings",
+          "when": "view == labTools.statusView",
+          "group": "navigation@3"
         }
       ]
     }

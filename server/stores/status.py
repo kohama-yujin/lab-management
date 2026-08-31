@@ -170,7 +170,7 @@ def _build_revision(session_rows: list[tuple[Any, ...]], now: datetime) -> int:
     revision = len(session_rows) * 1_000_000
     for row in session_rows:
         session_id = int(row[0])
-        end_at = row[6]
+        end_at = row[5]
         revision ^= session_id * 1_000_003
         if end_at is not None:
             revision ^= int(end_at.timestamp())
@@ -180,9 +180,15 @@ def _build_revision(session_rows: list[tuple[Any, ...]], now: datetime) -> int:
     return revision & 0x7FFFFFFF
 
 
+def _arrival_sort_key(row: DayMemberRow) -> tuple[str, str, int]:
+    """学年内の並び: 到着時刻 → 名前 → member_id。"""
+    return (row["arrived_at"] or "", row["name"], row["member_id"])
+
+
 def get_today_status() -> dict[str, Any]:
     """
     JST 本日の在室ボード用ペイロードを返す。
+    学年内メンバーは到着時刻（arrived_at）の昇順。
     public_url はルート側で付与する。
     """
     # 在学生がいる学年のみボード表示する（当日未出勤でも空ボードは出す）
@@ -200,7 +206,6 @@ def get_today_status() -> dict[str, Any]:
                         m.id AS member_id,
                         m.name,
                         g.code AS grade,
-                        g.sort_order,
                         s.start_at,
                         s.end_at
                     FROM attendance_sessions s
@@ -208,7 +213,7 @@ def get_today_status() -> dict[str, Any]:
                     JOIN grades g ON g.id = m.grade_id
                     WHERE s.start_at < %s
                       AND (s.end_at IS NULL OR s.end_at > %s)
-                    ORDER BY g.sort_order ASC, m.name ASC, s.start_at ASC
+                    ORDER BY s.start_at ASC, m.id ASC
                     """,
                     (day_end, day_start),
                 )
@@ -231,8 +236,8 @@ def get_today_status() -> dict[str, Any]:
                 "sessions": [],
             }
             ordered_ids.append(member_id)
-        start_at = _ensure_jst(row[5])
-        end_at = _ensure_jst(row[6]) if row[6] is not None else None
+        start_at = _ensure_jst(row[4])
+        end_at = _ensure_jst(row[5]) if row[5] is not None else None
         grouped[member_id]["sessions"].append((start_at, end_at))
 
     by_grade: dict[str, list[DayMemberRow]] = {grade: [] for grade in grades}
@@ -260,6 +265,9 @@ def get_today_status() -> dict[str, Any]:
         count += 1
         if member_row["present"]:
             present_count += 1
+
+    for members in by_grade.values():
+        members.sort(key=_arrival_sort_key)
 
     return {
         "revision": _build_revision(rows, now),

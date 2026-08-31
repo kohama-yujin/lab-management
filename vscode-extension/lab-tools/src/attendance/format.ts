@@ -25,6 +25,17 @@ export function formatTime(iso: string | null | undefined): string {
 }
 
 /**
+ * 最終更新表示用に Date を HH:mm:ss へ整形する。
+ */
+export function formatUpdatedAt(date: Date): string {
+	return date.toLocaleTimeString('ja-JP', {
+		hour: '2-digit',
+		minute: '2-digit',
+		second: '2-digit',
+	});
+}
+
+/**
  * メンバー行の「到着 - 帰宅」表示文字列を組み立てる。
  */
 export function formatMemberTimeRange(row: DayMemberRow): string {

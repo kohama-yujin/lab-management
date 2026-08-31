@@ -9,6 +9,7 @@
     banner: /** @type {HTMLElement} */ (document.getElementById('banner')),
     selfArea: /** @type {HTMLElement} */ (document.getElementById('self-area')),
     boards: /** @type {HTMLElement} */ (document.getElementById('boards')),
+    lastUpdated: /** @type {HTMLElement} */ (document.getElementById('last-updated')),
   };
 
   /**
@@ -38,6 +39,14 @@
       els.banner.textContent = s.viewError.userMessage;
     } else {
       els.banner.hidden = true;
+    }
+
+    if (s.lastUpdatedLabel) {
+      els.lastUpdated.hidden = false;
+      els.lastUpdated.textContent = `最終更新: ${s.lastUpdatedLabel}`;
+    } else {
+      els.lastUpdated.hidden = true;
+      els.lastUpdated.textContent = '';
     }
 
     renderSelf(s);
@@ -126,4 +135,3 @@
 
   vscode.postMessage({ type: 'ready' });
 })();
-

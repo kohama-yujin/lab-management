@@ -2,7 +2,7 @@ import type { LabError } from '../errors/labError';
 import { LabErrors, toViewError } from '../errors/labError';
 import type { StatusPayload, StatusViewState } from '../api/types';
 import { findMemberById } from './findMember';
-import { formatDurationChip, formatMemberTimeRange } from './format';
+import { formatDurationChip, formatMemberTimeRange, formatUpdatedAt } from './format';
 
 /**
  * GET /status の生データを Webview 表示用に変換する。
@@ -15,14 +15,18 @@ export function buildViewState(
 		autoCheckIn: boolean;
 		username: string;
 		memberId: number | null;
+		lastUpdatedAt: Date | null;
 	},
 ): StatusViewState {
+	const lastUpdatedLabel = options.lastUpdatedAt ? formatUpdatedAt(options.lastUpdatedAt) : '';
+
 	if (!status) {
 		return {
 			loading: options.loading,
 			viewError: toViewError(options.viewError),
 			autoCheckIn: options.autoCheckIn,
 			username: options.username,
+			lastUpdatedLabel,
 			self: null,
 			grades: [],
 		};
@@ -54,6 +58,7 @@ export function buildViewState(
 		viewError: toViewError(options.viewError),
 		autoCheckIn: options.autoCheckIn,
 		username: options.username,
+		lastUpdatedLabel,
 		self,
 		grades,
 	};

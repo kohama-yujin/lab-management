@@ -28,6 +28,9 @@ export function activate(context: vscode.ExtensionContext): void {
 		vscode.commands.registerCommand(`${COMMAND_PREFIX}.reloadStatus`, () => {
 			void statusController.reload();
 		}),
+		vscode.commands.registerCommand(`${COMMAND_PREFIX}.openAttendancePage`, () => {
+			void statusController.openAttendancePage();
+		}),
 		vscode.commands.registerCommand(`${COMMAND_PREFIX}.toggleAttendance`, () => {
 			void statusController.handleToggleFromStatusBar();
 		}),
