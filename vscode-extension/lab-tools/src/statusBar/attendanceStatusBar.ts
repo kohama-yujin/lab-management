@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import type { StatusPayload } from '../api/types';
-import { findMemberById, listPresentMemberNames } from '../attendance/findMember';
+import { findMemberById, listPresentMemberNames, resolvePresentCount } from '../attendance/findMember';
 import { formatDurationChip } from '../attendance/format';
 import { COMMAND_PREFIX } from '../config/constants';
 import type { LabError } from '../errors/labError';
@@ -80,7 +80,7 @@ export class AttendanceStatusBar {
 				this.resetCountItemStyle();
 			} else {
 				const presentNames = listPresentMemberNames(status);
-				this.countItem.text = `$(home) 在室 ${status.count}人`;
+				this.countItem.text = `$(home) 在室 ${resolvePresentCount(status)}人`;
 				this.countItem.tooltip =
 					presentNames.length > 0 ? presentNames.join(', ') : '在室者なし';
 				this.resetCountItemStyle();
@@ -118,7 +118,7 @@ export class AttendanceStatusBar {
 		}
 
 		const presentNames = listPresentMemberNames(status);
-		this.countItem.text = `$(home) 在室 ${status.count}人`;
+		this.countItem.text = `$(home) 在室 ${resolvePresentCount(status)}人`;
 		this.countItem.tooltip =
 			presentNames.length > 0 ? presentNames.join(', ') : '在室者なし';
 		this.resetCountItemStyle();

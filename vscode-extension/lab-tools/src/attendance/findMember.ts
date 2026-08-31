@@ -28,3 +28,13 @@ export function listPresentMemberNames(status: StatusPayload): string[] {
 	}
 	return names;
 }
+
+/**
+ * 現在在室中のメンバー数を返す。API の present_count が無い場合は行データから数える。
+ */
+export function resolvePresentCount(status: StatusPayload): number {
+	if (typeof status.present_count === 'number') {
+		return status.present_count;
+	}
+	return listPresentMemberNames(status).length;
+}

@@ -237,6 +237,7 @@ def get_today_status() -> dict[str, Any]:
 
     by_grade: dict[str, list[DayMemberRow]] = {grade: [] for grade in grades}
     count = 0
+    present_count = 0
 
     for member_id in ordered_ids:
         item = grouped[member_id]
@@ -257,11 +258,14 @@ def get_today_status() -> dict[str, Any]:
             continue
         by_grade[grade].append(member_row)
         count += 1
+        if member_row["present"]:
+            present_count += 1
 
     return {
         "revision": _build_revision(rows, now),
         "grades": grades,
         "by_grade": by_grade,
         "count": count,
+        "present_count": present_count,
         "day": day_start.date().isoformat(),
     }

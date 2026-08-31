@@ -21,7 +21,10 @@ export type StatusPayload = {
 	revision: number;
 	grades: string[];
 	by_grade: Record<string, DayMemberRow[]>;
+	/** 本日記録のあるメンバー数 */
 	count: number;
+	/** 現在在室中のメンバー数 */
+	present_count?: number;
 	day: string;
 	public_url?: string;
 };
