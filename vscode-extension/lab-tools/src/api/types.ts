@@ -44,6 +44,16 @@ export type MemberPayload = {
 };
 
 /**
+ * POST /start_attendance / POST /end_attendance のレスポンス。
+ */
+export type AttendancePayload = {
+	ok: boolean;
+	ignored: boolean;
+	message: string;
+	public_url?: string;
+};
+
+/**
  * サイドバー Webview へ送る表示用データ。
  */
 export type StatusViewState = {

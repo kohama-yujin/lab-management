@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { endAttendance, startAttendance } from '../api/attendanceClient';
 import { fetchMemberByCredentials } from '../api/memberClient';
 import { fetchStatus } from '../api/statusClient';
 import type { StatusPayload } from '../api/types';
@@ -22,6 +23,7 @@ export class StatusController implements vscode.Disposable {
 	private memberId: number | null = null;
 	private viewError: LabError | null = null;
 	private loading = false;
+	private lastBaseUrl: string | null = null;
 
 	constructor(
 		private readonly store: SettingsStore,
@@ -52,6 +54,7 @@ export class StatusController implements vscode.Disposable {
 		if (result.ok) {
 			this.status = result.data;
 			this.viewError = null;
+			this.lastBaseUrl = result.baseUrl;
 			await this.resolveMember(
 				settings.username,
 				settings.serverIp,
@@ -67,7 +70,7 @@ export class StatusController implements vscode.Disposable {
 	}
 
 	/**
-	 * ステータスバー左クリック時の入退室切替（ダイアログのみ、POST は未実装）。
+	 * ステータスバー左クリック時の入退室切替。
 	 */
 	async handleToggleFromStatusBar(): Promise<void> {
 		const settings = await this.store.get();
@@ -123,7 +126,9 @@ export class StatusController implements vscode.Disposable {
 		if (!confirmed) {
 			return;
 		}
-		// POST /start_attendance は後続フェーズで実装
+		await this.postAttendance(() =>
+			startAttendance(this.store, { preferredBaseUrl: this.lastBaseUrl ?? undefined }),
+		);
 	}
 
 	private async handleCheckOut(): Promise<void> {
@@ -131,7 +136,30 @@ export class StatusController implements vscode.Disposable {
 		if (!confirmed) {
 			return;
 		}
-		// POST /end_attendance は後続フェーズで実装
+		await this.postAttendance(() =>
+			endAttendance(this.store, { preferredBaseUrl: this.lastBaseUrl ?? undefined }),
+		);
+	}
+
+	/**
+	 * 入退室 POST を実行し、成功時は reload、失敗時はエラー通知する。
+	 */
+	private async postAttendance(
+		request: () => Promise<
+			| { ok: true; data: { ignored: boolean }; baseUrl: string }
+			| { ok: false; error: LabError }
+		>,
+	): Promise<void> {
+		const result = await request();
+		if (!result.ok) {
+			void vscode.window.showErrorMessage(displayMessage(result.error));
+			return;
+		}
+
+		if (result.baseUrl) {
+			this.lastBaseUrl = result.baseUrl;
+		}
+		await this.reload();
 	}
 
 	private async onWebviewMessage(

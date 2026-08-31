@@ -6,8 +6,10 @@ export type LabErrorCode =
 	| 'CONFIG_SERVER'
 	| 'CONFIG_USERNAME'
 	| 'CONFIG_PASSWORD'
+	| 'CONFIG_API_KEY'
 	| 'NETWORK'
 	| 'AUTH_FAILED'
+	| 'GRADUATED'
 	| 'SERVER_ERROR'
 	| 'SAVE_FAILED';
 
@@ -28,8 +30,10 @@ const USER_MESSAGES: Record<LabErrorCode, string> = {
 	CONFIG_SERVER: 'サーバー IP または公開 URL を設定してください',
 	CONFIG_USERNAME: 'ユーザー名を設定してください',
 	CONFIG_PASSWORD: 'パスワードを設定してください',
+	CONFIG_API_KEY: 'APIキーを設定してください',
 	NETWORK: 'サーバーに接続できません',
 	AUTH_FAILED: 'ユーザー名またはパスワードが正しくありません',
+	GRADUATED: '卒業済みのため入退室できません',
 	SERVER_ERROR: 'サーバーでエラーが発生しました',
 	SAVE_FAILED: '設定の保存に失敗しました',
 };
@@ -47,6 +51,12 @@ export const LabErrors = {
 	configPassword(): LabError {
 		return { code: 'CONFIG_PASSWORD', userMessage: USER_MESSAGES.CONFIG_PASSWORD };
 	},
+	configApiKey(): LabError {
+		return { code: 'CONFIG_API_KEY', userMessage: USER_MESSAGES.CONFIG_API_KEY };
+	},
+	configApiKeyInvalid(): LabError {
+		return { code: 'CONFIG_API_KEY', userMessage: 'APIキーが正しくありません' };
+	},
 	network(detail?: string): LabError {
 		return withOptionalDetail(
 			{ code: 'NETWORK', userMessage: USER_MESSAGES.NETWORK },
@@ -55,6 +65,9 @@ export const LabErrors = {
 	},
 	authFailed(): LabError {
 		return { code: 'AUTH_FAILED', userMessage: USER_MESSAGES.AUTH_FAILED };
+	},
+	graduated(): LabError {
+		return { code: 'GRADUATED', userMessage: USER_MESSAGES.GRADUATED };
 	},
 	serverError(detail?: string): LabError {
 		return withOptionalDetail(
@@ -87,8 +100,13 @@ function withOptionalDetail(error: LabError, detail?: string): LabError {
  */
 export function mapServerMessage(message: string): LabError {
 	const trimmed = message.trim();
+	if (trimmed.includes('APIキーが無効')) {
+		return LabErrors.configApiKeyInvalid();
+	}
 	if (
 		trimmed.includes('ユーザー名またはパスワード') ||
+		trimmed.includes('パスワードが正しくありません') ||
+		trimmed.includes('ユーザーが見つかりません') ||
 		(trimmed.includes('ユーザー名は') && trimmed.includes('文字')) ||
 		(trimmed.includes('パスワードは') && trimmed.includes('文字')) ||
 		trimmed.includes('パスワードが間違')
@@ -97,16 +115,20 @@ export function mapServerMessage(message: string): LabError {
 	}
 	if (
 		trimmed.includes('ユーザー名は必須') ||
-		trimmed.includes('ユーザー名を設定')
+		trimmed.includes('ユーザー名を設定') ||
+		trimmed.includes('username と password は必須')
 	) {
 		return LabErrors.configUsername();
 	}
-	
+
 	if (
 		trimmed.includes('パスワードは必須') ||
 		trimmed.includes('パスワードを設定')
 	) {
 		return LabErrors.configPassword();
+	}
+	if (trimmed.includes('卒業')) {
+		return LabErrors.graduated();
 	}
 	return LabErrors.serverError(trimmed);
 }
@@ -115,14 +137,17 @@ export function mapServerMessage(message: string): LabError {
  * HTTP ステータスと message から LabError を決定する。
  */
 export function mapHttpError(status: number, message: string): LabError {
+	const mapped = mapServerMessage(message);
 	if (status === 401) {
-		const mapped = mapServerMessage(message);
-		return mapped.code === 'AUTH_FAILED' ? mapped : LabErrors.authFailed();
+		if (mapped.code === 'CONFIG_API_KEY' || mapped.code === 'AUTH_FAILED') {
+			return mapped;
+		}
+		return LabErrors.authFailed();
 	}
 	if (message.startsWith('HTTP ')) {
 		return LabErrors.network(message);
 	}
-	return mapServerMessage(message);
+	return mapped;
 }
 
 /**
@@ -198,9 +223,12 @@ export function statusBarLabel(error: LabError): { text: string; style: 'error' 
 		case 'CONFIG_SERVER':
 		case 'CONFIG_USERNAME':
 		case 'CONFIG_PASSWORD':
+		case 'CONFIG_API_KEY':
 			return { text: '$(warning) 在室: 未設定', style: 'warning' };
 		case 'AUTH_FAILED':
 			return { text: '$(warning) 在室: 認証失敗', style: 'warning' };
+		case 'GRADUATED':
+			return { text: '$(warning) 在室: 利用不可', style: 'warning' };
 		case 'NETWORK':
 			return { text: '$(error) 在室: 接続失敗', style: 'error' };
 		case 'SERVER_ERROR':

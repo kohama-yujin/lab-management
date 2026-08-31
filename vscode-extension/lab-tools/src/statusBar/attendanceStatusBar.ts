@@ -107,7 +107,7 @@ export class AttendanceStatusBar {
 			const present = self?.present ?? false;
 			const label = present ? '在室' : '不在';
 			const duration = formatDurationChip(self?.total_present_seconds ?? 0);
-			const icon = present ? '$(pass-filled)' : '$(circle-slash)';
+			const icon = present ? '$(check)' : '$(circle-slash)';
 			this.myItem.text = `${icon} ${label} ${duration}`;
 			this.myItem.tooltip = present ? '退室する' : '入室する';
 			if (present) {
