@@ -61,13 +61,27 @@ export class SettingsStore {
 
 	/**
 	 * 設定を保存する。password / apiKey が空なら既存シークレットを維持する。
+	 * @returns 保存内容に変更があった場合 true
 	 */
-	async save(update: LabSettingsUpdate): Promise<void> {
+	async save(update: LabSettingsUpdate): Promise<boolean> {
 		const cfg = vscode.workspace.getConfiguration();
-		await cfg.update(ConfigKeys.username, update.username.trim(), vscode.ConfigurationTarget.Global);
-		await cfg.update(ConfigKeys.serverIp, update.serverIp.trim(), vscode.ConfigurationTarget.Global);
-		await cfg.update(ConfigKeys.publicUrl, update.publicUrl.trim(), vscode.ConfigurationTarget.Global);
-		await cfg.update(ConfigKeys.autoCheckIn, update.autoCheckIn, vscode.ConfigurationTarget.Global);
+		const current = await this.get();
+		const username = update.username.trim();
+		const serverIp = update.serverIp.trim();
+		const publicUrl = update.publicUrl.trim();
+		const autoCheckIn = update.autoCheckIn;
+		const changed =
+			current.username !== username ||
+			current.serverIp !== serverIp ||
+			current.publicUrl !== publicUrl ||
+			current.autoCheckIn !== autoCheckIn ||
+			update.password !== '' ||
+			update.apiKey !== '';
+
+		await cfg.update(ConfigKeys.username, username, vscode.ConfigurationTarget.Global);
+		await cfg.update(ConfigKeys.serverIp, serverIp, vscode.ConfigurationTarget.Global);
+		await cfg.update(ConfigKeys.publicUrl, publicUrl, vscode.ConfigurationTarget.Global);
+		await cfg.update(ConfigKeys.autoCheckIn, autoCheckIn, vscode.ConfigurationTarget.Global);
 
 		if (update.password !== '') {
 			await this.secrets.store(SecretKeys.password, update.password);
@@ -75,6 +89,8 @@ export class SettingsStore {
 		if (update.apiKey !== '') {
 			await this.secrets.store(SecretKeys.apiKey, update.apiKey);
 		}
+
+		return changed;
 	}
 
 	/**

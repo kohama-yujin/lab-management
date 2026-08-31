@@ -97,7 +97,7 @@ export class SettingsPanel {
 
 	private async handleSave(msg: Extract<WebviewToExt, { type: 'save' }>): Promise<void> {
 		try {
-			await this.store.save({
+			const changed = await this.store.save({
 				username: msg.username,
 				serverIp: msg.serverIp,
 				publicUrl: msg.publicUrl,
@@ -106,7 +106,11 @@ export class SettingsPanel {
 				apiKey: msg.apiKey,
 			});
 			await this.pushSettings();
-			await this.panel.webview.postMessage({ type: 'status', kind: 'ok', text: '設定を保存しました' });
+			await this.panel.webview.postMessage({
+				type: 'status',
+				kind: changed ? 'ok' : 'info',
+				text: changed ? '設定を保存しました' : '変更はありません',
+			});
 		} catch (err) {
 			const labError = mapUnknownError(err);
 			await this.panel.webview.postMessage({

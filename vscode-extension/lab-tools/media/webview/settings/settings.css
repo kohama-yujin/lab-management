@@ -111,8 +111,30 @@ button {
   border: 1px solid color-mix(in srgb, var(--vscode-testing-iconPassed) 40%, transparent);
 }
 
+#status.info {
+  display: block;
+  background: color-mix(in srgb, var(--vscode-descriptionForeground) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--vscode-descriptionForeground) 30%, transparent);
+  color: var(--vscode-descriptionForeground);
+}
+
 #status.error {
   display: block;
   background: color-mix(in srgb, var(--vscode-errorForeground) 12%, transparent);
   border: 1px solid color-mix(in srgb, var(--vscode-errorForeground) 35%, transparent);
+}
+
+@keyframes status-flash {
+  0% {
+    opacity: 0.35;
+    transform: scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+#status.flash {
+  animation: status-flash 0.35s ease-out;
 }

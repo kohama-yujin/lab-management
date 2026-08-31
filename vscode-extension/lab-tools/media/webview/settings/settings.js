@@ -23,6 +23,9 @@
     const node = el('status');
     node.className = kind;
     node.textContent = text;
+    node.classList.remove('flash');
+    void node.offsetWidth; // Force reflow to trigger animation
+    node.classList.add('flash');
   }
 
   function readForm() {
