@@ -12,13 +12,19 @@ export function normalizeBaseUrl(raw: string): string {
 	return value;
 }
 
+type HealthResponse = {
+	ok?: boolean;
+	message?: string;
+	public_url?: string;
+};
+
 /**
  * serverIp を優先し、失敗したら publicUrl で /health を試す。
  */
 export async function testConnection(
 	serverIp: string,
 	publicUrl: string,
-): Promise<{ ok: true; used: 'serverIp' | 'publicUrl'; baseUrl: string } | { ok: false; message: string }> {
+): Promise<{ ok: true; used: 'serverIp' | 'publicUrl'; baseUrl: string; publicUrl: string } | { ok: false; message: string }> {
 	const candidates: Array<{ kind: 'serverIp' | 'publicUrl'; url: string }> = [];
 	const ip = normalizeBaseUrl(serverIp);
 	const pub = normalizeBaseUrl(publicUrl);
@@ -39,10 +45,30 @@ export async function testConnection(
 				method: 'GET',
 				signal: AbortSignal.timeout(5000),
 			});
-			if (res.ok) {
-				return { ok: true, used: candidate.kind, baseUrl: candidate.url };
+			if (!res.ok) {
+				errors.push(`${candidate.kind}: HTTP ${res.status}`);
+				continue;
 			}
-			errors.push(`${candidate.kind}: HTTP ${res.status}`);
+
+			let body: HealthResponse;
+			try {
+				body = (await res.json()) as HealthResponse;
+			} catch {
+				errors.push(`${candidate.kind}: 無効な JSON レスポンス`);
+				continue;
+			}
+			if (!body.ok) {
+				errors.push(`${candidate.kind}: ${body.message ?? 'ok が false'}`);
+				continue;
+			}
+
+			const discoveredPublicUrl = typeof body.public_url === 'string' ? body.public_url.trim() : '';
+			return {
+				ok: true,
+				used: candidate.kind,
+				baseUrl: candidate.url,
+				publicUrl: discoveredPublicUrl,
+			};
 		} catch (err) {
 			const msg = err instanceof Error ? err.message : String(err);
 			errors.push(`${candidate.kind}: ${msg}`);

@@ -84,8 +84,8 @@ async def require_api_key(
 
 
 @api_router.get("/health")
-def health() -> PlainTextResponse:
-    return PlainTextResponse("running")
+def health() -> dict[str, Any]:
+    return {"ok": True, "message": "OK", "public_url": load_public_tunnel_url()}
 
 
 @api_router.get("/get_grade")

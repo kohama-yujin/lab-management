@@ -50,9 +50,13 @@
       apiKey.placeholder = s.hasApiKey ? '••••••••（変更時のみ入力）' : '';
       el('passwordHint').textContent = s.hasPassword ? '保存済みのパスワードがあります' : '未設定';
       el('apiKeyHint').textContent = s.hasApiKey ? '保存済みのAPIキーがあります' : '未設定';
+      el('publicUrlHint').textContent = "サーバーIPが有効な場合、接続テスト時に公開URLが自動的に設定されます。";
     }
     if (msg.type === 'status') {
       setStatus(msg.kind, msg.text);
+    }
+    if (msg.type === 'setPublicUrl') {
+      /** @type {HTMLInputElement} */ (el('publicUrl')).value = msg.value || '';
     }
   });
 

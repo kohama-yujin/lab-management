@@ -115,7 +115,20 @@ export class SettingsPanel {
 		const result = await testConnection(msg.serverIp, msg.publicUrl);
 		if (result.ok) {
 			const label = result.used === 'serverIp' ? 'serverIp' : 'public-url';
-			const text = `接続成功（${label}: ${result.baseUrl}）`;
+			let text = `接続成功（${label}: ${result.baseUrl}）`;
+
+			if (result.used === 'serverIp' && result.publicUrl) {
+				await this.store.save({
+					username: msg.username,
+					serverIp: msg.serverIp,
+					publicUrl: result.publicUrl,
+					password: msg.password,
+					apiKey: msg.apiKey,
+				});
+				await this.panel.webview.postMessage({ type: 'setPublicUrl', value: result.publicUrl });
+				text += ` / 公開URLを自動設定: ${result.publicUrl}`;
+			}
+
 			await this.panel.webview.postMessage({ type: 'status', kind: 'ok', text });
 			return;
 		}
