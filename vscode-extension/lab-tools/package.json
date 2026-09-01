@@ -61,11 +61,6 @@
           "type": "boolean",
           "default": false,
           "description": "不在時にエディタ操作で自動入室する"
-        },
-        "labTools.soundOnCheckOut": {
-          "type": "boolean",
-          "default": true,
-          "description": "自分の在室状態が在室→不在になったとき音で知らせる"
         }
       }
     },

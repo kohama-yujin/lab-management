@@ -320,7 +320,6 @@ export class StatusController implements vscode.Disposable {
 			loading: this.loading,
 			viewError: effectiveError,
 			autoCheckIn: settings.autoCheckIn,
-			soundOnCheckOut: settings.soundOnCheckOut,
 			username: settings.username,
 			memberId: this.memberId,
 			lastUpdatedAt: this.lastUpdatedAt,

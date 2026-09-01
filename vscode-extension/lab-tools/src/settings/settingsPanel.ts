@@ -13,7 +13,6 @@ type WebviewToExt =
 			serverIp: string;
 			publicUrl: string;
 			autoCheckIn: boolean;
-			soundOnCheckOut: boolean;
 			password: string;
 			apiKey: string;
 	  }
@@ -23,7 +22,6 @@ type WebviewToExt =
 			serverIp: string;
 			publicUrl: string;
 			autoCheckIn: boolean;
-			soundOnCheckOut: boolean;
 			password: string;
 			apiKey: string;
 	  };
@@ -129,7 +127,6 @@ export class SettingsPanel {
 				serverIp: msg.serverIp,
 				publicUrl: msg.publicUrl,
 				autoCheckIn: msg.autoCheckIn,
-				soundOnCheckOut: msg.soundOnCheckOut,
 				password: msg.password,
 				apiKey: msg.apiKey,
 			});
@@ -164,7 +161,6 @@ export class SettingsPanel {
 					serverIp: msg.serverIp,
 					publicUrl: result.publicUrl,
 					autoCheckIn: msg.autoCheckIn,
-					soundOnCheckOut: msg.soundOnCheckOut,
 					password: msg.password,
 					apiKey: msg.apiKey,
 				});

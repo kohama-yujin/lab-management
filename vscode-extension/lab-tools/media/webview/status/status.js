@@ -12,14 +12,27 @@
     selfArea: /** @type {HTMLElement} */ (document.getElementById('self-area')),
     boards: /** @type {HTMLElement} */ (document.getElementById('boards')),
     lastUpdated: /** @type {HTMLElement} */ (document.getElementById('last-updated')),
+    checkinSound: /** @type {HTMLAudioElement} */ (document.getElementById('checkin-sound')),
     checkoutSound: /** @type {HTMLAudioElement} */ (document.getElementById('checkout-sound')),
   };
 
   /**
-   * reload 後の状態更新で、自分の在室→不在を検知して退室音を鳴らす。
+   * @param {HTMLAudioElement} audio
+   */
+  function playSound(audio) {
+    try {
+      audio.currentTime = 0;
+      void audio.play();
+    } catch {
+      // 再生失敗は無視（自動再生制限など）
+    }
+  }
+
+  /**
+   * reload 後の状態更新で、自分の在室状態の変化を検知して入退室音を鳴らす。
    * @param {import('../../../src/api/types').StatusViewState} s
    */
-  function maybePlayCheckoutSound(s) {
+  function maybePlayAttendanceSounds(s) {
     if (s.loading) {
       return;
     }
@@ -29,13 +42,10 @@
     }
 
     const present = s.self.present;
-    if (s.soundOnCheckOut && lastPresent === true && present === false) {
-      try {
-        els.checkoutSound.currentTime = 0;
-        void els.checkoutSound.play();
-      } catch {
-        // 再生失敗は無視（自動再生制限など）
-      }
+    if (lastPresent === false && present === true) {
+      playSound(els.checkinSound);
+    } else if (lastPresent === true && present === false) {
+      playSound(els.checkoutSound);
     }
     lastPresent = present;
   }
@@ -79,7 +89,7 @@
 
     renderSelf(s);
     renderBoards(s);
-    maybePlayCheckoutSound(s);
+    maybePlayAttendanceSounds(s);
   }
 
   /**

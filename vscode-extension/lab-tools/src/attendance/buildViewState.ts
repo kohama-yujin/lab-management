@@ -13,7 +13,6 @@ export function buildViewState(
 		loading: boolean;
 		viewError: LabError | null;
 		autoCheckIn: boolean;
-		soundOnCheckOut: boolean;
 		username: string;
 		memberId: number | null;
 		lastUpdatedAt: Date | null;
@@ -26,7 +25,6 @@ export function buildViewState(
 			loading: options.loading,
 			viewError: toViewError(options.viewError),
 			autoCheckIn: options.autoCheckIn,
-			soundOnCheckOut: options.soundOnCheckOut,
 			username: options.username,
 			lastUpdatedLabel,
 			self: null,
@@ -59,7 +57,6 @@ export function buildViewState(
 		loading: options.loading,
 		viewError: toViewError(options.viewError),
 		autoCheckIn: options.autoCheckIn,
-		soundOnCheckOut: options.soundOnCheckOut,
 		username: options.username,
 		lastUpdatedLabel,
 		self,

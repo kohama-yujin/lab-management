@@ -9,7 +9,6 @@ export const ConfigKeys = {
 	serverIp: `${CONFIG_SECTION}.serverIp`,
 	publicUrl: `${CONFIG_SECTION}.publicUrl`,
 	autoCheckIn: `${CONFIG_SECTION}.autoCheckIn`,
-	soundOnCheckOut: `${CONFIG_SECTION}.soundOnCheckOut`,
 } as const;
 
 export const SecretKeys = {
