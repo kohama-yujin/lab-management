@@ -45,8 +45,8 @@ function renderBoards(status) {
                 <tr>
                   <th>状態</th>
                   <th>氏名</th>
-                  <th>到着</th>
-                  <th>帰宅</th>
+                  <th class="col-arrived">到着</th>
+                  <th class="col-left">帰宅</th>
                   <th>総在室</th>
                   <th class="col-detail"></th>
                 </tr>
@@ -62,8 +62,8 @@ function renderBoards(status) {
                     return `<tr class="${view.rowClass}">
                       <td class="${view.statusClass}">${view.label}</td>
                       <td>${dash(t.name)}</td>
-                      <td>${arrived}</td>
-                      <td>${left}</td>
+                      <td class="col-arrived">${arrived}</td>
+                      <td class="col-left">${left}</td>
                       <td class="col-total">
                         <span class="total-duration">${formatDuration(t.total_present_seconds)}</span>
                       </td>
