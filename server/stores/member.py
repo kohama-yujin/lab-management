@@ -223,7 +223,11 @@ def list_graduated_members(offset: int, limit: int) -> tuple[list[MemberItem], i
                 f"""
                 {_MEMBER_SELECT}
                 WHERE m.graduation_year IS NOT NULL
-                ORDER BY m.graduation_year DESC, g.sort_order ASC, m.name ASC
+                ORDER BY
+                    m.graduation_year DESC,
+                    g.sort_order ASC,
+                    m.updated_at DESC,
+                    m.name ASC
                 OFFSET %s LIMIT %s
                 """,
                 (offset, limit),
