@@ -6,10 +6,11 @@ from fastapi.responses import JSONResponse, PlainTextResponse
 
 from server.config import load_api_key, load_public_tunnel_url
 from server.db import StoreError
+from server.member_validation import MemberValidationError
 from server.stores import attendance as attendance_store
 from server.stores.grade import get_grade_order
 from server.stores.history import get_history_for_day, list_history_dates
-from server.stores.member import create_member, list_active_members, list_graduated_members, update_member
+from server.stores.member import create_member, fetch_member_by_credentials, list_active_members, list_graduated_members, update_member
 from server.stores.role import get_roles
 from server.stores.status import get_today_status
 
@@ -84,8 +85,8 @@ async def require_api_key(
 
 
 @api_router.get("/health")
-def health() -> PlainTextResponse:
-    return PlainTextResponse("running")
+def health() -> dict[str, Any]:
+    return {"ok": True, "message": "OK", "public_url": load_public_tunnel_url()}
 
 
 @api_router.get("/get_grade")
@@ -97,6 +98,18 @@ def get_grade() -> dict[str, list[str]]:
 def get_role() -> dict[str, list[dict[str, str]]]:
     return {"roles": get_roles()}
 
+
+@api_router.get("/member")
+def get_member(username: str = "", password: str = "") -> dict[str, Any]:
+    try:
+        member = fetch_member_by_credentials(str(username), str(password))
+    except StoreError as exc:
+        raise ApiError(exc.message, exc.status_code)
+    except MemberValidationError as exc:
+        raise ApiError(exc.message, exc.status_code)
+    except Exception:
+        raise ApiError("メンバーの取得に失敗しました", 500)
+    return {"ok": True, "member": member}
 
 @api_router.get("/members/list")
 def members_list(

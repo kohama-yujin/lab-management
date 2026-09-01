@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src {{cspSource}}; script-src 'nonce-{{nonce}}';">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lab Tools 設定</title>
+  <link rel="stylesheet" href="{{styleUri}}">
+</head>
+<body>
+  <h1>Lab Tools 設定</h1>
+  <p class="sub">パスワード / APIキーは SecretStorage に保存されます。空のまま保存すると既存値を維持します。</p>
+
+  <div class="row">
+    <label for="username">ユーザー名</label>
+    <input id="username" autocomplete="username" />
+  </div>
+  <div class="row">
+    <label for="password">パスワード</label>
+    <input id="password" type="password" autocomplete="current-password" placeholder="" />
+    <p class="hint" id="passwordHint"></p>
+  </div>
+  <div class="row">
+    <label for="apiKey">APIキー</label>
+    <input id="apiKey" type="password" autocomplete="off" />
+    <p class="hint" id="apiKeyHint"></p>
+  </div>
+  <div class="row">
+    <label for="serverIp">サーバーIP: ポート</label>
+    <input id="serverIp" placeholder="192.168.1.20:8000" />
+  </div>
+  <div class="row">
+    <label for="publicUrl">公開URL</label>
+    <input id="publicUrl" placeholder="https://xxxx.trycloudflare.com" />
+    <p class="hint" id="publicUrlHint"></p>
+  </div>
+  <div class="row row-checkbox">
+    <label for="autoCheckIn">自動入室</label>
+    <div class="checkbox-wrap">
+      <input id="autoCheckIn" type="checkbox" />
+      <p class="hint">不在時にエディタを操作すると自動入室します</p>
+    </div>
+  </div>
+  <div class="row row-checkbox">
+    <label for="soundOnCheckOut">退室音</label>
+    <div class="checkbox-wrap">
+      <input id="soundOnCheckOut" type="checkbox" />
+      <p class="hint">不在状態になったとき通知音が鳴ります（誤退室に気付くため）</p>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button type="button" class="primary" id="save">保存</button>
+    <button type="button" class="secondary" id="test">接続テスト</button>
+  </div>
+  <div id="status" role="status"></div>
+
+  <script nonce="{{nonce}}" src="{{scriptUri}}"></script>
+</body>
+</html>

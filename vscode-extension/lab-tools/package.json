@@ -1,0 +1,132 @@
+{
+  "name": "lab-tools",
+  "displayName": "lab-tools",
+  "description": "研究室向けの在室管理・作業記録ツール",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "lab-tools.openSettings",
+        "title": "Lab Tools: 接続設定を開く",
+        "icon": "$(gear)"
+      },
+      {
+        "command": "lab-tools.reloadStatus",
+        "title": "Lab Tools: 在室状況を更新",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "lab-tools.openAttendancePage",
+        "title": "Lab Tools: 在室管理ページを外部ブラウザで開く",
+        "icon": "$(link-external)"
+      },
+      {
+        "command": "lab-tools.toggleAttendance",
+        "title": "Lab Tools: 入退室"
+      },
+      {
+        "command": "lab-tools.focusStatusView",
+        "title": "Lab Tools: 在室ビューを開く"
+      }
+    ],
+    "configuration": {
+      "title": "Lab Tools",
+      "properties": {
+        "labTools.username": {
+          "type": "string",
+          "default": "",
+          "description": "在室 API に使う username"
+        },
+        "labTools.serverIp": {
+          "type": "string",
+          "default": "",
+          "description": "LAN 上のサーバー（例: 192.168.1.20:8000）。接続の第一候補"
+        },
+        "labTools.publicUrl": {
+          "type": "string",
+          "default": "",
+          "description": "公開 URL（serverIp 失敗時のフォールバック）"
+        },
+        "labTools.autoCheckIn": {
+          "type": "boolean",
+          "default": false,
+          "description": "不在時にエディタ操作で自動入室する"
+        },
+        "labTools.soundOnCheckOut": {
+          "type": "boolean",
+          "default": true,
+          "description": "自分の在室状態が在室→不在になったとき音で知らせる"
+        }
+      }
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "lab-tools",
+          "title": "Lab Tools",
+          "icon": "media/lab.svg"
+        }
+      ]
+    },
+    "views": {
+      "lab-tools": [
+        {
+          "type": "webview",
+          "id": "labTools.statusView",
+          "name": "Lab Tools"
+        }
+      ]
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "lab-tools.reloadStatus",
+          "when": "view == labTools.statusView",
+          "group": "navigation@1"
+        },
+        {
+          "command": "lab-tools.openAttendancePage",
+          "when": "view == labTools.statusView",
+          "group": "navigation@2"
+        },
+        {
+          "command": "lab-tools.openSettings",
+          "when": "view == labTools.statusView",
+          "group": "navigation@3"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src",
+    "test": "vscode-test"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.134.0",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "24.x",
+    "typescript-eslint": "^8.61.1",
+    "eslint": "^10.5.0",
+    "typescript": "^6.0.3",
+    "@vscode/test-cli": "^0.0.15",
+    "@vscode/test-electron": "^3.0.0"
+  },
+  "overrides": {
+    "diff": "^8.0.4",
+    "serialize-javascript": "^7.0.6"
+  }
+}
