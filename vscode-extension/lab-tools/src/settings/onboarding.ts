@@ -9,6 +9,7 @@ import { SettingsPanel } from './settingsPanel';
 export async function maybeShowSetupToast(
 	context: vscode.ExtensionContext,
 	store: SettingsStore,
+	onSaved?: () => void | Promise<void>,
 ): Promise<void> {
 	if (context.globalState.get<boolean>(GlobalStateKeys.setupToastDismissed)) {
 		return;
@@ -26,7 +27,7 @@ export async function maybeShowSetupToast(
 	);
 
 	if (choice === open) {
-		SettingsPanel.show(context, store);
+		SettingsPanel.show(context, store, onSaved);
 		return;
 	}
 	if (choice === later) {

@@ -38,13 +38,16 @@ export class SettingsPanel {
 
 	private readonly panel: vscode.WebviewPanel;
 	private readonly disposables: vscode.Disposable[] = [];
+	private onSaved?: () => void | Promise<void>;
 
 	private constructor(
 		panel: vscode.WebviewPanel,
 		private readonly store: SettingsStore,
 		extensionUri: vscode.Uri,
+		onSaved?: () => void | Promise<void>,
 	) {
 		this.panel = panel;
+		this.onSaved = onSaved;
 		this.panel.webview.html = renderWebviewHtml(
 			this.panel.webview,
 			extensionUri,
@@ -65,10 +68,16 @@ export class SettingsPanel {
 
 	/**
 	 * 設定パネルを表示する（既存があれば前面へ）。
+	 * @param onSaved 保存成功後に呼ぶ（在室 UI の reload など）
 	 */
-	static show(context: vscode.ExtensionContext, store: SettingsStore): void {
+	static show(
+		context: vscode.ExtensionContext,
+		store: SettingsStore,
+		onSaved?: () => void | Promise<void>,
+	): void {
 		const column = vscode.window.activeTextEditor?.viewColumn ?? vscode.ViewColumn.One;
 		if (SettingsPanel.current) {
+			SettingsPanel.current.onSaved = onSaved;
 			SettingsPanel.current.panel.reveal(column);
 			void SettingsPanel.current.pushSettings();
 			return;
@@ -85,7 +94,7 @@ export class SettingsPanel {
 				localResourceRoots: [webviewRoot],
 			},
 		);
-		SettingsPanel.current = new SettingsPanel(panel, store, context.extensionUri);
+		SettingsPanel.current = new SettingsPanel(panel, store, context.extensionUri, onSaved);
 		context.subscriptions.push(
 			new vscode.Disposable(() => {
 				SettingsPanel.current?.dispose();
@@ -130,6 +139,9 @@ export class SettingsPanel {
 				kind: changed ? 'ok' : 'info',
 				text: changed ? '設定を保存しました' : '変更はありません',
 			});
+			if (changed && this.onSaved) {
+				await this.onSaved();
+			}
 		} catch (err) {
 			const labError = mapUnknownError(err);
 			await this.panel.webview.postMessage({

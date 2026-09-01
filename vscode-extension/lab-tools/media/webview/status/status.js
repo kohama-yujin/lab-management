@@ -71,7 +71,7 @@
 
     if (s.lastUpdatedLabel) {
       els.lastUpdated.hidden = false;
-      els.lastUpdated.textContent = `最終更新: ${s.lastUpdatedLabel}`;
+      els.lastUpdated.textContent = `最終更新 ${s.lastUpdatedLabel}`;
     } else {
       els.lastUpdated.hidden = true;
       els.lastUpdated.textContent = '';
@@ -99,11 +99,12 @@
     let html = renderChip(s.self.present, s.self.durationLabel);
 
     if (s.self.present) {
-      html += '<button type="button" class="btn btn-checkout" id="btn-checkout">退室</button>';
+      html += '<button type="button" class="btn" id="btn-checkout">退室</button>';
     } else if (!s.autoCheckIn) {
-      html += '<button type="button" class="btn btn-checkin" id="btn-checkin">入室</button>';
+      html += '<button type="button" class="btn" id="btn-checkin">入室</button>';
     } else {
-      html += '<p class="hint">VS Code を操作すると自動入室します</p>';
+      html += '<p class="hint">エディタを操作すると自動入室します</p>';
+      html += '<p class="hint">手動退室後は 1分後から有効です</p>';
     }
 
     els.selfArea.innerHTML = html;

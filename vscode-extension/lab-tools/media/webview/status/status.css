@@ -10,8 +10,6 @@
   --chip-away-bg: rgba(60, 25, 25, 0.72);
   --chip-away-text: #f0b8b8;
   --chip-away-dot: #ff6b6b;
-  --btn-checkout-bg: #9e4a44;
-  --btn-checkout-hover: #b0554e;
 }
 
 body {
@@ -159,24 +157,12 @@ body {
   font-size: 0.85rem;
   cursor: pointer;
   font-family: inherit;
-}
-
-.btn-checkin {
   background: var(--vscode-button-background);
   color: var(--vscode-button-foreground);
 }
 
-.btn-checkin:hover {
+.btn:hover {
   background: var(--vscode-button-hoverBackground);
-}
-
-.btn-checkout {
-  background: var(--btn-checkout-bg);
-  color: #fff;
-}
-
-.btn-checkout:hover {
-  background: var(--btn-checkout-hover);
 }
 
 .boards {

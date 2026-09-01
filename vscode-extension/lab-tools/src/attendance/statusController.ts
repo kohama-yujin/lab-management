@@ -16,8 +16,8 @@ import { StatusWebviewProvider } from '../views/statusWebviewProvider';
 /** 在室状況の自動更新間隔（ミリ秒） */
 const AUTO_RELOAD_INTERVAL_MS = 60_000;
 
-/** 自動入室のクールダウン（ミリ秒） */
-const AUTO_CHECK_IN_COOLDOWN_MS = 5 * 60_000;
+/** 手動退室後、自動入室を抑止する時間（ミリ秒） */
+const MANUAL_CHECK_OUT_AUTO_CHECK_IN_SUPPRESS_MS = 60_000;
 
 /**
  * GET /status の取得と UI（サイドバー・ステータスバー）の更新を担う。
@@ -32,13 +32,14 @@ export class StatusController implements vscode.Disposable {
 	private loading = false;
 	private lastBaseUrl: string | null = null;
 	private lastUpdatedAt: Date | null = null;
-	private reloadInFlight: Promise<void> | null = null;
+	private reloadChain: Promise<void> = Promise.resolve();
 	private readonly autoReloadTimer: ReturnType<typeof setInterval>;
 	private readonly disposables: vscode.Disposable[] = [];
 
-	private lastAutoCheckInAt = 0;
 	private autoCheckInInFlight = false;
 	private autoCheckInTimer: ReturnType<typeof setTimeout> | null = null;
+	/** 最後に手動退室した時刻（未退室なら 0） */
+	private lastManualCheckOutAt = 0;
 
 	constructor(
 		private readonly store: SettingsStore,
@@ -90,17 +91,14 @@ export class StatusController implements vscode.Disposable {
 	 * @param options.silent true のとき読み込み中バナーを出さない（自動更新向け）
 	 */
 	async reload(options?: { silent?: boolean }): Promise<void> {
-		if (this.reloadInFlight) {
-			await this.reloadInFlight;
-			return;
-		}
-
-		this.reloadInFlight = this.runReload(options?.silent === true);
-		try {
-			await this.reloadInFlight;
-		} finally {
-			this.reloadInFlight = null;
-		}
+		const silent = options?.silent === true;
+		// 先行 reload の完了後に必ず再取得する（自動入室直後の更新が捨てられないようにする）
+		const run = this.reloadChain.then(() => this.runReload(silent));
+		this.reloadChain = run.then(
+			() => undefined,
+			() => undefined,
+		);
+		await run;
 	}
 
 	private async runReload(silent: boolean): Promise<void> {
@@ -133,13 +131,13 @@ export class StatusController implements vscode.Disposable {
 	}
 
 	/**
-	 * 不在時の VS Code 操作による自動入室（確認ダイアログなし）。
+	 * 不在時のエディタ操作による自動入室（確認ダイアログなし）。
 	 */
 	async tryAutoCheckIn(): Promise<void> {
 		if (this.autoCheckInInFlight) {
 			return;
 		}
-		if (Date.now() - this.lastAutoCheckInAt < AUTO_CHECK_IN_COOLDOWN_MS) {
+		if (Date.now() - this.lastManualCheckOutAt < MANUAL_CHECK_OUT_AUTO_CHECK_IN_SUPPRESS_MS) {
 			return;
 		}
 
@@ -169,7 +167,6 @@ export class StatusController implements vscode.Disposable {
 				return;
 			}
 
-			this.lastAutoCheckInAt = Date.now();
 			if (result.baseUrl) {
 				this.lastBaseUrl = result.baseUrl;
 			}
@@ -264,6 +261,12 @@ export class StatusController implements vscode.Disposable {
 		const confirmed = await confirmCheckOut();
 		if (!confirmed) {
 			return;
+		}
+		// 退室直後の自動入室を防ぐ（確認ダイアログ閉鎖や直後の編集向け）
+		this.lastManualCheckOutAt = Date.now();
+		if (this.autoCheckInTimer) {
+			clearTimeout(this.autoCheckInTimer);
+			this.autoCheckInTimer = null;
 		}
 		await this.postAttendance(() =>
 			endAttendance(this.store, { preferredBaseUrl: this.lastBaseUrl ?? undefined }),

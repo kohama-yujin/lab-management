@@ -60,7 +60,7 @@
         "labTools.autoCheckIn": {
           "type": "boolean",
           "default": false,
-          "description": "不在時に VS Code 操作で自動入室する"
+          "description": "不在時にエディタ操作で自動入室する"
         },
         "labTools.soundOnCheckOut": {
           "type": "boolean",

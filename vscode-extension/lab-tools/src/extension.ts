@@ -23,7 +23,7 @@ export function activate(context: vscode.ExtensionContext): void {
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand(`${COMMAND_PREFIX}.openSettings`, () => {
-			SettingsPanel.show(context, store);
+			SettingsPanel.show(context, store, () => statusController.reload());
 		}),
 		vscode.commands.registerCommand(`${COMMAND_PREFIX}.reloadStatus`, () => {
 			void statusController.reload();
@@ -39,7 +39,7 @@ export function activate(context: vscode.ExtensionContext): void {
 		}),
 	);
 
-	void maybeShowSetupToast(context, store);
+	void maybeShowSetupToast(context, store, () => statusController.reload());
 }
 
 export function deactivate(): void {}

@@ -45,7 +45,7 @@ export class SettingsStore {
 			username: (cfg.get<string>(ConfigKeys.username) ?? '').trim(),
 			serverIp: (cfg.get<string>(ConfigKeys.serverIp) ?? '').trim(),
 			publicUrl: (cfg.get<string>(ConfigKeys.publicUrl) ?? '').trim(),
-			autoCheckIn: cfg.get<boolean>(ConfigKeys.autoCheckIn) ?? false,
+			autoCheckIn: cfg.get<boolean>(ConfigKeys.autoCheckIn) ?? true,
 			soundOnCheckOut: cfg.get<boolean>(ConfigKeys.soundOnCheckOut) ?? true,
 			hasPassword: Boolean(password),
 			hasApiKey: Boolean(apiKey),
