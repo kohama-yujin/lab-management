@@ -31,10 +31,16 @@ export class StatusWebviewProvider implements vscode.WebviewViewProvider {
 		_token: vscode.CancellationToken,
 	): void {
 		this.view = webviewView;
+		const statusRoot = vscode.Uri.joinPath(this.extensionUri, 'media', 'webview', 'status');
+		const soundsRoot = vscode.Uri.joinPath(this.extensionUri, 'media', 'sounds');
 		webviewView.webview.options = {
 			enableScripts: true,
-			localResourceRoots: [vscode.Uri.joinPath(this.extensionUri, 'media', 'webview', 'status')],
+			localResourceRoots: [statusRoot, soundsRoot],
 		};
+
+		const soundUri = webviewView.webview.asWebviewUri(
+			vscode.Uri.joinPath(soundsRoot, 'checkout.wav'),
+		);
 		webviewView.webview.html = renderWebviewHtml(
 			webviewView.webview,
 			this.extensionUri,
@@ -42,7 +48,8 @@ export class StatusWebviewProvider implements vscode.WebviewViewProvider {
 			'status.html',
 			'status.css',
 			'status.js',
-		);
+		).replaceAll('{{soundUri}}', soundUri.toString());
+
 		webviewView.webview.onDidReceiveMessage((msg: WebviewToExt) => {
 			void this.onMessage(msg);
 		});

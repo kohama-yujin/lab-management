@@ -64,6 +64,8 @@ export type StatusViewState = {
 	/** 設定・接続・認証などの統一エラー（null なら正常） */
 	viewError: LabErrorView | null;
 	autoCheckIn: boolean;
+	/** 在室→不在の変化時に Webview で退室音を鳴らす */
+	soundOnCheckOut: boolean;
 	username: string;
 	/** 最終更新時刻の表示（未取得時は空文字） */
 	lastUpdatedLabel: string;

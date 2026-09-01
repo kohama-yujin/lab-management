@@ -38,7 +38,14 @@
     <label for="autoCheckIn">自動入室</label>
     <div class="checkbox-wrap">
       <input id="autoCheckIn" type="checkbox" />
-      <p class="hint">不在時に VS Code を操作すると自動入室します（動作は後続フェーズで実装）</p>
+      <p class="hint">不在時に VS Code を操作すると自動入室します（クールダウン 5 分）</p>
+    </div>
+  </div>
+  <div class="row row-checkbox">
+    <label for="soundOnCheckOut">退室音</label>
+    <div class="checkbox-wrap">
+      <input id="soundOnCheckOut" type="checkbox" />
+      <p class="hint">自分が在室→不在になったとき音で知らせます（通知は出しません）</p>
     </div>
   </div>
 

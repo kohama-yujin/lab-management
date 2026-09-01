@@ -16,6 +16,9 @@ import { StatusWebviewProvider } from '../views/statusWebviewProvider';
 /** 在室状況の自動更新間隔（ミリ秒） */
 const AUTO_RELOAD_INTERVAL_MS = 60_000;
 
+/** 自動入室のクールダウン（ミリ秒） */
+const AUTO_CHECK_IN_COOLDOWN_MS = 5 * 60_000;
+
 /**
  * GET /status の取得と UI（サイドバー・ステータスバー）の更新を担う。
  */
@@ -31,10 +34,15 @@ export class StatusController implements vscode.Disposable {
 	private lastUpdatedAt: Date | null = null;
 	private reloadInFlight: Promise<void> | null = null;
 	private readonly autoReloadTimer: ReturnType<typeof setInterval>;
+	private readonly disposables: vscode.Disposable[] = [];
+
+	private lastAutoCheckInAt = 0;
+	private autoCheckInInFlight = false;
+	private autoCheckInTimer: ReturnType<typeof setTimeout> | null = null;
 
 	constructor(
 		private readonly store: SettingsStore,
-		extensionUri: vscode.Uri,
+		private readonly extensionUri: vscode.Uri,
 	) {
 		this.webviewProvider = new StatusWebviewProvider(extensionUri, (msg) => this.onWebviewMessage(msg));
 		this.statusBar = new AttendanceStatusBar(
@@ -48,6 +56,33 @@ export class StatusController implements vscode.Disposable {
 		this.autoReloadTimer = setInterval(() => {
 			void this.reload({ silent: true });
 		}, AUTO_RELOAD_INTERVAL_MS);
+
+		this.disposables.push(
+			vscode.window.onDidChangeWindowState((state) => {
+				if (state.focused) {
+					this.scheduleAutoCheckIn();
+				}
+			}),
+			vscode.workspace.onDidChangeTextDocument(() => {
+				this.scheduleAutoCheckIn();
+			}),
+			vscode.window.onDidChangeActiveTextEditor(() => {
+				this.scheduleAutoCheckIn();
+			}),
+		);
+	}
+
+	/**
+	 * 連打をまとめてから自動入室を試す。
+	 */
+	private scheduleAutoCheckIn(): void {
+		if (this.autoCheckInTimer) {
+			clearTimeout(this.autoCheckInTimer);
+		}
+		this.autoCheckInTimer = setTimeout(() => {
+			this.autoCheckInTimer = null;
+			void this.tryAutoCheckIn();
+		}, 400);
 	}
 
 	/**
@@ -95,6 +130,53 @@ export class StatusController implements vscode.Disposable {
 			this.viewError = result.error;
 		}
 		await this.pushUi();
+	}
+
+	/**
+	 * 不在時の VS Code 操作による自動入室（確認ダイアログなし）。
+	 */
+	async tryAutoCheckIn(): Promise<void> {
+		if (this.autoCheckInInFlight) {
+			return;
+		}
+		if (Date.now() - this.lastAutoCheckInAt < AUTO_CHECK_IN_COOLDOWN_MS) {
+			return;
+		}
+
+		const settings = await this.store.get();
+		if (!settings.autoCheckIn) {
+			return;
+		}
+		if (!(await this.store.isConfigured())) {
+			return;
+		}
+		if (!this.status || this.memberId === null) {
+			return;
+		}
+
+		const present = findMemberById(this.status, this.memberId)?.present ?? false;
+		if (present) {
+			return;
+		}
+
+		this.autoCheckInInFlight = true;
+		try {
+			const result = await startAttendance(this.store, {
+				preferredBaseUrl: this.lastBaseUrl ?? undefined,
+			});
+			if (!result.ok) {
+				void vscode.window.showErrorMessage(displayMessage(result.error));
+				return;
+			}
+
+			this.lastAutoCheckInAt = Date.now();
+			if (result.baseUrl) {
+				this.lastBaseUrl = result.baseUrl;
+			}
+			await this.reload({ silent: true });
+		} finally {
+			this.autoCheckInInFlight = false;
+		}
 	}
 
 	/**
@@ -235,6 +317,7 @@ export class StatusController implements vscode.Disposable {
 			loading: this.loading,
 			viewError: effectiveError,
 			autoCheckIn: settings.autoCheckIn,
+			soundOnCheckOut: settings.soundOnCheckOut,
 			username: settings.username,
 			memberId: this.memberId,
 			lastUpdatedAt: this.lastUpdatedAt,
@@ -245,7 +328,12 @@ export class StatusController implements vscode.Disposable {
 
 	dispose(): void {
 		clearInterval(this.autoReloadTimer);
+		if (this.autoCheckInTimer) {
+			clearTimeout(this.autoCheckInTimer);
+		}
+		for (const d of this.disposables) {
+			d.dispose();
+		}
 		this.statusBar.dispose();
 	}
 }
-

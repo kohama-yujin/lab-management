@@ -5,12 +5,40 @@
 
   /** @type {import('../../../src/api/types').StatusViewState | null} */
   let state = null;
+  /** @type {boolean | null} */
+  let lastPresent = null;
   const els = {
     banner: /** @type {HTMLElement} */ (document.getElementById('banner')),
     selfArea: /** @type {HTMLElement} */ (document.getElementById('self-area')),
     boards: /** @type {HTMLElement} */ (document.getElementById('boards')),
     lastUpdated: /** @type {HTMLElement} */ (document.getElementById('last-updated')),
+    checkoutSound: /** @type {HTMLAudioElement} */ (document.getElementById('checkout-sound')),
   };
+
+  /**
+   * reload 後の状態更新で、自分の在室→不在を検知して退室音を鳴らす。
+   * @param {import('../../../src/api/types').StatusViewState} s
+   */
+  function maybePlayCheckoutSound(s) {
+    if (s.loading) {
+      return;
+    }
+    if (!s.self) {
+      lastPresent = null;
+      return;
+    }
+
+    const present = s.self.present;
+    if (s.soundOnCheckOut && lastPresent === true && present === false) {
+      try {
+        els.checkoutSound.currentTime = 0;
+        void els.checkoutSound.play();
+      } catch {
+        // 再生失敗は無視（自動再生制限など）
+      }
+    }
+    lastPresent = present;
+  }
 
   /**
    * @param {boolean} present
@@ -51,6 +79,7 @@
 
     renderSelf(s);
     renderBoards(s);
+    maybePlayCheckoutSound(s);
   }
 
   /**
