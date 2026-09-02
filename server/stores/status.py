@@ -286,10 +286,11 @@ def _build_revision(
 
 
 def _arrival_sort_key(row: DayMemberRow) -> tuple[int, str, str, int]:
-    """学年内の並び: 在室 → 到着時刻 → 名前 → member_id。"""
+    """学年内の並び: 在室 → 到着時刻 → 退室時刻 ➝ 名前 → member_id。"""
     return (
         0 if row["present"] else 1,
         row["arrived_at"] or "",
+        row["left_at"] or "",
         row["name"],
         row["member_id"],
     )
@@ -298,7 +299,7 @@ def _arrival_sort_key(row: DayMemberRow) -> tuple[int, str, str, int]:
 def get_today_status() -> dict[str, Any]:
     """
     JST 本日の在室ボード用ペイロードを返す。
-    学年内メンバーは在室優先のうえ、到着時刻（arrived_at）の昇順。
+    学年内メンバーは在室優先のうえ、到着時刻（arrived_at）、退室時刻（left_at）の昇順。
     public_url はルート側で付与する。
     """
     # 在学生がいる学年のみボード表示する（当日未出勤でも空ボードは出す）

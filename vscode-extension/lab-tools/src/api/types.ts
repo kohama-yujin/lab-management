@@ -12,6 +12,9 @@ export type DayMemberRow = {
 	left_at: string | null;
 	left_at_is_end_of_day: boolean;
 	total_present_seconds: number;
+	working?: boolean;
+	work_started_at?: string | null;
+	total_work_seconds?: number;
 };
 
 /**
@@ -70,6 +73,8 @@ export type StatusViewState = {
 	self: {
 		present: boolean;
 		durationLabel: string;
+		working: boolean;
+		workDurationLabel: string;
 	} | null;
 	grades: Array<{
 		grade: string;

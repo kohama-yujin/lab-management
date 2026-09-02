@@ -62,6 +62,16 @@
   }
 
   /**
+   * @param {boolean} working
+   * @param {string} durationLabel
+   * @returns {string}
+   */
+  function renderWorkChip(working, durationLabel) {
+    const kind = working ? 'work' : 'work idle';
+    return `<span class="chip ${kind}"><span class="dot"></span>作業<span class="sep">·</span><span class="time">${durationLabel}</span></span>`;
+  }
+
+  /**
    * @param {import('../../../src/api/types').StatusViewState} s
    */
   function render(s) {
@@ -106,7 +116,10 @@
       return;
     }
 
-    let html = renderChip(s.self.present, s.self.durationLabel);
+    let html = '<div class="self-chips">';
+    html += renderChip(s.self.present, s.self.durationLabel);
+    html += renderWorkChip(s.self.working, s.self.workDurationLabel);
+    html += '</div>';
 
     if (s.self.present) {
       html += '<button type="button" class="btn" id="btn-checkout">退室</button>';

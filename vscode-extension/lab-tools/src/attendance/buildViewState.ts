@@ -38,6 +38,8 @@ export function buildViewState(
 			? {
 					present: selfRow?.present ?? false,
 					durationLabel: formatDurationChip(selfRow?.total_present_seconds ?? 0),
+					working: selfRow?.working ?? false,
+					workDurationLabel: formatDurationChip(selfRow?.total_work_seconds ?? 0),
 				}
 			: null;
 
