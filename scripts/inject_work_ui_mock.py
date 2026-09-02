@@ -186,7 +186,7 @@ def _insert_members(conn: psycopg.Connection, password_hash: str) -> dict[str, i
     return member_ids
 
 
-def _insert_sessions(conn: psycopg.Connection, member_ids: dict[str, int]) -> None:
+def _insert_attendance_and_work_sessions(conn: psycopg.Connection, member_ids: dict[str, int]) -> None:
     now = datetime.now(JST)
     day_start = _jst_day_start(now)
     yesterday_start = day_start - timedelta(days=1)
@@ -488,7 +488,7 @@ def inject(*, assume_yes: bool) -> int:
     with psycopg.connect(**params) as conn:
         _clear_dbg_mock_only(conn)
         member_ids = _insert_members(conn, password_hash)
-        _insert_sessions(conn, member_ids)
+        _insert_attendance_and_work_sessions(conn, member_ids)
         conn.commit()
         _print_summary(conn)
 

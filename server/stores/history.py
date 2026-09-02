@@ -279,12 +279,12 @@ def get_history_for_day(day: str) -> dict[str, Any] | None:
                 "name": enrolled[member_id][0],
                 "grade": enrolled[member_id][1],
                 "role": role_as_of.get(member_id),
-                "sessions": [],
+                "attendance_sessions": [],
             }
             ordered_ids.append(member_id)
         start_at = _ensure_jst(row[3])
         end_at = _ensure_jst(row[4]) if row[4] is not None else day_end
-        grouped[member_id]["sessions"].append((start_at, end_at))
+        grouped[member_id]["attendance_sessions"].append((start_at, end_at))
 
     by_grade: dict[str, list[DayMemberRow]] = {grade: [] for grade in grades}
     count = 0
@@ -295,7 +295,7 @@ def get_history_for_day(day: str) -> dict[str, Any] | None:
             member_id=member_id,
             name=item["name"],
             grade=item["grade"],
-            sessions=item["sessions"],
+            attendance_sessions=item["attendance_sessions"],
             day_start=day_start,
             day_end=day_end,
             now=day_end,

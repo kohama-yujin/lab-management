@@ -118,7 +118,7 @@ function renderBoards(status) {
     })
     .join("");
 
-  SessionDetailDialog.refresh(status);
+  AttendanceSessionDetailDialog.refresh(status);
 }
 
 async function watch() {
@@ -152,11 +152,11 @@ async function watch() {
 async function boot() {
   DisplayUtils.startClock(els.clockDate, els.clockTime);
   try {
-    await SessionDetailDialog.loadPartial(els.dialogRoot);
-    SessionDetailDialog.init();
-    SessionDetailDialog.wireBoard(els.boards, (memberId) => {
+    await AttendanceSessionDetailDialog.loadPartial(els.dialogRoot);
+    AttendanceSessionDetailDialog.init();
+    AttendanceSessionDetailDialog.wireBoard(els.boards, (memberId) => {
       if (!lastStatus) return;
-      SessionDetailDialog.open(memberId, lastStatus);
+      AttendanceSessionDetailDialog.open(memberId, lastStatus);
     });
     await GradeConfig.ensureLoaded();
   } catch (err) {

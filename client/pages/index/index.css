@@ -31,7 +31,7 @@
   text-align: right;
 }
 
-.session-detail-dialog {
+.attendance-session-detail-dialog {
   width: min(92vw, 36rem);
   padding: 0;
   border: 1px solid var(--line);
@@ -41,15 +41,15 @@
   box-shadow: 0 18px 48px rgba(28, 36, 32, 0.18);
 }
 
-.session-detail-dialog::backdrop {
+.attendance-session-detail-dialog::backdrop {
   background: rgba(28, 36, 32, 0.35);
 }
 
-.session-detail-panel {
+.attendance-session-detail-panel {
   padding: 0;
 }
 
-.session-detail-head {
+.attendance-session-detail-head {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
@@ -58,67 +58,67 @@
   border-bottom: 1px solid var(--line);
 }
 
-.session-detail-head[data-grade="Teacher"] {
+.attendance-session-detail-head[data-grade="Teacher"] {
   background: var(--teacher);
   color: var(--teacher-ink);
 }
 
-.session-detail-head[data-grade="D3"] {
+.attendance-session-detail-head[data-grade="D3"] {
   background: var(--d3);
   color: var(--d3-ink);
 }
 
-.session-detail-head[data-grade="D2"] {
+.attendance-session-detail-head[data-grade="D2"] {
   background: var(--d2);
   color: var(--d2-ink);
 }
 
-.session-detail-head[data-grade="D1"] {
+.attendance-session-detail-head[data-grade="D1"] {
   background: var(--d1);
   color: var(--d1-ink);
 }
 
-.session-detail-head[data-grade="M2"] {
+.attendance-session-detail-head[data-grade="M2"] {
   background: var(--m2);
   color: var(--m2-ink);
 }
 
-.session-detail-head[data-grade="M1"] {
+.attendance-session-detail-head[data-grade="M1"] {
   background: var(--m1);
   color: var(--m1-ink);
 }
 
-.session-detail-head[data-grade="B4"] {
+.attendance-session-detail-head[data-grade="B4"] {
   background: var(--b4);
   color: var(--b4-ink);
 }
 
-.session-detail-head[data-grade="B3"] {
+.attendance-session-detail-head[data-grade="B3"] {
   background: var(--b3);
   color: var(--b3-ink);
 }
 
-.session-detail-head[data-grade="B2"] {
+.attendance-session-detail-head[data-grade="B2"] {
   background: var(--b2);
   color: var(--b2-ink);
 }
 
-.session-detail-head[data-grade="B1"] {
+.attendance-session-detail-head[data-grade="B1"] {
   background: var(--b1);
   color: var(--b1-ink);
 }
 
-.session-detail-head[data-grade="other"] {
+.attendance-session-detail-head[data-grade="other"] {
   background: var(--other);
   color: var(--other-ink);
 }
 
-.session-detail-head[data-grade="graduated"] {
+.attendance-session-detail-head[data-grade="graduated"] {
   background: var(--graduated);
   color: var(--graduated-ink);
 }
 
-.session-detail-title {
+.attendance-session-detail-title {
   margin: 0;
   font-family: "Noto Sans JP", sans-serif;
   font-size: 1.25rem;
@@ -126,13 +126,13 @@
   letter-spacing: 0.06em;
 }
 
-.session-detail-meta {
+.attendance-session-detail-meta {
   margin: 0.3rem 0 0;
   font-size: 0.86rem;
   opacity: 0.78;
 }
 
-.session-detail-close {
+.attendance-session-detail-close {
   appearance: none;
   border: 0;
   background: transparent;
@@ -144,15 +144,15 @@
   padding: 0.1rem 0.35rem;
 }
 
-.session-detail-close:hover {
+.attendance-session-detail-close:hover {
   opacity: 1;
 }
 
-.session-detail-body {
+.attendance-session-detail-body {
   padding: 1rem 1rem 1.15rem;
 }
 
-.session-detail-notes {
+.attendance-session-detail-notes {
   margin: 0 0 0.85rem;
   padding: 0.55rem 0.7rem;
   border-radius: 10px;
@@ -160,59 +160,59 @@
   border: 1px solid #e6c97a;
 }
 
-.session-detail-note {
+.attendance-session-detail-note {
   margin: 0;
   font-size: 0.86rem;
   color: #6a4e1a;
   font-weight: 600;
 }
 
-.session-detail-note + .session-detail-note {
+.attendance-session-detail-note + .attendance-session-detail-note {
   margin-top: 0.25rem;
 }
 
-.session-detail-kpis {
+.attendance-session-detail-kpis {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 0.5rem;
   margin-bottom: 0.9rem;
 }
 
-.session-detail-kpi {
+.attendance-session-detail-kpi {
   background: #f7f5f0;
   border: 1px solid var(--line);
   border-radius: 10px;
   padding: 0.55rem 0.7rem;
 }
 
-.session-detail-kpi .label {
+.attendance-session-detail-kpi .label {
   display: block;
   font-size: 0.72rem;
   color: var(--muted);
 }
 
-.session-detail-kpi .value {
+.attendance-session-detail-kpi .value {
   display: block;
   margin-top: 0.1rem;
   font-weight: 700;
   font-size: 1.02rem;
 }
 
-.session-detail-kpi.present .value {
+.attendance-session-detail-kpi.present .value {
   color: var(--present);
 }
 
-.session-detail-chart {
+.attendance-session-detail-chart {
   margin-bottom: 0.85rem;
 }
 
-.session-detail-axis-top {
+.attendance-session-detail-axis-top {
   position: relative;
   height: 1.55rem;
   margin-bottom: 0;
 }
 
-.session-detail-hour {
+.attendance-session-detail-hour {
   position: absolute;
   transform: translateX(-50%);
   display: flex;
@@ -223,17 +223,17 @@
   font-variant-numeric: tabular-nums;
 }
 
-.session-detail-hour[style*="left:0%"] {
+.attendance-session-detail-hour[style*="left:0%"] {
   transform: translateX(0);
   align-items: flex-start;
 }
 
-.session-detail-hour[style*="left:100%"] {
+.attendance-session-detail-hour[style*="left:100%"] {
   transform: translateX(-100%);
   align-items: flex-end;
 }
 
-.session-detail-hour-tick {
+.attendance-session-detail-hour-tick {
   display: block;
   width: 1px;
   height: 0.45rem;
@@ -241,7 +241,7 @@
   background: rgba(28, 36, 32, 0.45);
 }
 
-.session-detail-bar {
+.attendance-session-detail-bar {
   position: relative;
   height: 2.15rem;
   border-radius: 8px;
@@ -250,14 +250,14 @@
   overflow: hidden;
 }
 
-.session-detail-seg {
+.attendance-session-detail-seg {
   position: absolute;
   top: 0;
   bottom: 0;
   background: var(--present);
 }
 
-.session-detail-axis-bottom {
+.attendance-session-detail-axis-bottom {
   position: relative;
   height: 2.6rem;
   margin-top: 0.2rem;
@@ -265,14 +265,14 @@
   font-variant-numeric: tabular-nums;
 }
 
-.session-detail-endpoint {
+.attendance-session-detail-endpoint {
   position: absolute;
   transform: translateX(-50%);
   text-align: center;
   white-space: nowrap;
 }
 
-.session-detail-endpoint::before {
+.attendance-session-detail-endpoint::before {
   content: "";
   display: block;
   width: 1px;
@@ -281,14 +281,14 @@
   background: rgba(28, 36, 32, 0.35);
 }
 
-.session-detail-endpoint .cap {
+.attendance-session-detail-endpoint .cap {
   display: block;
   font-size: 0.62rem;
   font-weight: 600;
   color: var(--muted);
 }
 
-.session-detail-endpoint-combined {
+.attendance-session-detail-endpoint-combined {
   background: #fffdf8;
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -296,15 +296,15 @@
   box-shadow: 0 2px 8px rgba(28, 36, 32, 0.08);
 }
 
-.session-detail-endpoint-combined::before {
+.attendance-session-detail-endpoint-combined::before {
   margin-bottom: 0.1rem;
 }
 
-.session-detail-endpoint-combined .cap {
+.attendance-session-detail-endpoint-combined .cap {
   line-height: 1.35;
 }
 
-.session-cross-tag {
+.attendance-session-cross-tag {
   display: inline-block;
   margin-left: 0.35rem;
   padding: 0.05rem 0.4rem;
@@ -317,30 +317,30 @@
   vertical-align: middle;
 }
 
-.session-detail-table-wrap {
+.attendance-session-detail-table-wrap {
   overflow-x: auto;
 }
 
-.session-detail-table {
+.attendance-session-detail-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.9rem;
 }
 
-.session-detail-table th,
-.session-detail-table td {
+.attendance-session-detail-table th,
+.attendance-session-detail-table td {
   border-bottom: 1px solid var(--line);
   padding: 0.5rem 0.45rem;
   text-align: left;
 }
 
-.session-detail-table th {
+.attendance-session-detail-table th {
   color: var(--muted);
   font-weight: 600;
   font-size: 0.76rem;
 }
 
-.session-detail-table td.session-num {
+.attendance-session-detail-table td.attendance-session-num {
   font-weight: 700;
   color: var(--present);
   width: 2.4em;
@@ -348,7 +348,7 @@
 }
 
 @media (max-width: 720px) {
-  .session-detail-kpis {
+  .attendance-session-detail-kpis {
     grid-template-columns: 1fr;
   }
 }

@@ -1,8 +1,8 @@
 /**
  * 在室セッション詳細ダイアログ（partial 読み込み・描画・開閉）。
  */
-const SessionDetailDialog = {
-  PARTIAL: "/client/pages/index/session-detail-dialog.html",
+const AttendanceSessionDetailDialog = {
+  PARTIAL: "/client/pages/index/attendance-session-detail-dialog.html",
   HOUR_MARKS: [0, 6, 12, 18, 24],
   /** 到着・帰宅ラベルが重なるとみなす最小間隔（当日幅に対する %） */
   ENDPOINT_LABEL_MIN_GAP_PCT: 15,
@@ -37,18 +37,18 @@ const SessionDetailDialog = {
   },
 
   bindElements() {
-    this.dialog = document.getElementById("session-detail-dialog");
-    this.head = this.dialog?.querySelector(".session-detail-head") ?? null;
-    this.title = document.getElementById("session-detail-title");
-    this.meta = document.getElementById("session-detail-meta");
-    this.notes = document.getElementById("session-detail-notes");
-    this.total = document.getElementById("session-detail-total");
-    this.count = document.getElementById("session-detail-count");
-    this.axisTop = document.getElementById("session-detail-axis-top");
-    this.bar = document.getElementById("session-detail-bar");
-    this.axisBottom = document.getElementById("session-detail-axis-bottom");
-    this.tbody = document.getElementById("session-detail-tbody");
-    this.closeBtn = document.getElementById("session-detail-close");
+    this.dialog = document.getElementById("attendance-session-detail-dialog");
+    this.head = this.dialog?.querySelector(".attendance-session-detail-head") ?? null;
+    this.title = document.getElementById("attendance-session-detail-title");
+    this.meta = document.getElementById("attendance-session-detail-meta");
+    this.notes = document.getElementById("attendance-session-detail-notes");
+    this.total = document.getElementById("attendance-session-detail-total");
+    this.count = document.getElementById("attendance-session-detail-count");
+    this.axisTop = document.getElementById("attendance-session-detail-axis-top");
+    this.bar = document.getElementById("attendance-session-detail-bar");
+    this.axisBottom = document.getElementById("attendance-session-detail-axis-bottom");
+    this.tbody = document.getElementById("attendance-session-detail-tbody");
+    this.closeBtn = document.getElementById("attendance-session-detail-close");
   },
 
   init() {
@@ -109,43 +109,43 @@ const SessionDetailDialog = {
     return null;
   },
 
-  formatSessionEnd(session, day) {
+  formatAttendanceSessionEnd(attendanceSession, day) {
     const { formatTime } = DisplayUtils;
-    if (session.end_at_is_now) return "-";
-    if (this.endsIntoNextDay(session, day)) return "24:00";
-    return formatTime(session.end_at);
+    if (attendanceSession.end_at_is_now) return "-";
+    if (this.endsIntoNextDay(attendanceSession, day)) return "24:00";
+    return formatTime(attendanceSession.end_at);
   },
 
-  startsFromPreviousDay(session, day) {
-    if (session.starts_from_previous_day === true) return true;
-    const raw = session.raw_start_at || session.start_at;
+  startsFromPreviousDay(attendanceSession, day) {
+    if (attendanceSession.starts_from_previous_day === true) return true;
+    const raw = attendanceSession.raw_start_at || attendanceSession.start_at;
     if (!raw || !day) return false;
     return new Date(raw).getTime() < this.dayStartMs(day);
   },
 
-  endsIntoNextDay(session, day) {
-    if (session.end_at_is_end_of_day === true) return true;
-    if (!session.raw_end_at || !day) return false;
+  endsIntoNextDay(attendanceSession, day) {
+    if (attendanceSession.end_at_is_end_of_day === true) return true;
+    if (!attendanceSession.raw_end_at || !day) return false;
     const dayEnd = this.dayStartMs(day) + 24 * 60 * 60 * 1000;
-    return new Date(session.raw_end_at).getTime() >= dayEnd;
+    return new Date(attendanceSession.raw_end_at).getTime() >= dayEnd;
   },
 
   memberArrivedFromPreviousDay(member, day) {
     if (member.arrived_from_previous_day === true) return true;
-    return (member.sessions || []).some((s) => this.startsFromPreviousDay(s, day));
+    return (member.attendance_sessions || []).some((s) => this.startsFromPreviousDay(s, day));
   },
 
   memberLeftIntoNextDay(member, day) {
     if (member.left_into_next_day === true || member.left_at_is_end_of_day === true) {
       return true;
     }
-    return (member.sessions || []).some((s) => this.endsIntoNextDay(s, day));
+    return (member.attendance_sessions || []).some((s) => this.endsIntoNextDay(s, day));
   },
 
-  formatSessionStart(session, day) {
+  formatAttendanceSessionStart(attendanceSession, day) {
     const { formatTime } = DisplayUtils;
-    if (this.startsFromPreviousDay(session, day)) return "0:00";
-    return formatTime(session.start_at);
+    if (this.startsFromPreviousDay(attendanceSession, day)) return "0:00";
+    return formatTime(attendanceSession.start_at);
   },
 
   renderNotes(member, day) {
@@ -164,7 +164,7 @@ const SessionDetailDialog = {
     }
     this.notes.removeAttribute("hidden");
     this.notes.innerHTML = notes
-      .map((text) => `<p class="session-detail-note">${text}</p>`)
+      .map((text) => `<p class="attendance-session-detail-note">${text}</p>`)
       .join("");
   },
 
@@ -194,7 +194,7 @@ const SessionDetailDialog = {
       Math.abs(leftPct - arrivedPct) < this.ENDPOINT_LABEL_MIN_GAP_PCT
     ) {
       const mid = (arrivedPct + leftPct) / 2;
-      this.axisBottom.innerHTML = `<span class="session-detail-endpoint session-detail-endpoint-combined" style="left:${mid}%">
+      this.axisBottom.innerHTML = `<span class="attendance-session-detail-endpoint attendance-session-detail-endpoint-combined" style="left:${mid}%">
         <span class="cap">到着 ${arrivedText}</span>
         <span class="cap">帰宅 ${leftText}</span>
       </span>`;
@@ -203,12 +203,12 @@ const SessionDetailDialog = {
 
     let bottom = "";
     if (arrivedPct != null) {
-      bottom += `<span class="session-detail-endpoint" style="left:${arrivedPct}%">
+      bottom += `<span class="attendance-session-detail-endpoint" style="left:${arrivedPct}%">
         <span class="cap">到着</span>${arrivedText}
       </span>`;
     }
     if (leftPct != null) {
-      bottom += `<span class="session-detail-endpoint" style="left:${leftPct}%">
+      bottom += `<span class="attendance-session-detail-endpoint" style="left:${leftPct}%">
         <span class="cap">帰宅</span>${leftText}
       </span>`;
     }
@@ -219,22 +219,24 @@ const SessionDetailDialog = {
     this.axisTop.innerHTML = this.HOUR_MARKS.map((hour) => {
       const left = (hour / 24) * 100;
       const label = hour === 24 ? "24:00" : `${hour}:00`;
-      return `<span class="session-detail-hour" style="left:${left}%">
-        <span class="session-detail-hour-label">${label}</span>
-        <span class="session-detail-hour-tick"></span>
+      return `<span class="attendance-session-detail-hour" style="left:${left}%">
+        <span class="attendance-session-detail-hour-label">${label}</span>
+        <span class="attendance-session-detail-hour-tick"></span>
       </span>`;
     }).join("");
 
-    const sessions = Array.isArray(member.sessions) ? member.sessions : [];
-    this.bar.innerHTML = sessions
-      .map((session) => {
-        const left = this.dayPercent(session.start_at, day);
-        const right = this.dayPercent(session.end_at, day, {
-          endOfDay: session.end_at_is_end_of_day,
+    const attendanceSessions = Array.isArray(member.attendance_sessions)
+      ? member.attendance_sessions
+      : [];
+    this.bar.innerHTML = attendanceSessions
+      .map((attendanceSession) => {
+        const left = this.dayPercent(attendanceSession.start_at, day);
+        const right = this.dayPercent(attendanceSession.end_at, day, {
+          endOfDay: attendanceSession.end_at_is_end_of_day,
         });
         if (left == null || right == null || right <= left) return "";
         const width = right - left;
-        return `<span class="session-detail-seg" style="left:${left}%;width:${width}%"></span>`;
+        return `<span class="attendance-session-detail-seg" style="left:${left}%;width:${width}%"></span>`;
       })
       .join("");
 
@@ -243,24 +245,26 @@ const SessionDetailDialog = {
 
   renderTable(member, day) {
     const { formatDuration } = DisplayUtils;
-    const sessions = Array.isArray(member.sessions) ? member.sessions : [];
-    this.tbody.innerHTML = sessions
-      .map((session, index) => {
-        const fromPrev = this.startsFromPreviousDay(session, day);
-        const intoNext = this.endsIntoNextDay(session, day);
-        const enter = this.formatSessionStart(session, day);
-        const leave = this.formatSessionEnd(session, day);
+    const attendanceSessions = Array.isArray(member.attendance_sessions)
+      ? member.attendance_sessions
+      : [];
+    this.tbody.innerHTML = attendanceSessions
+      .map((attendanceSession, index) => {
+        const fromPrev = this.startsFromPreviousDay(attendanceSession, day);
+        const intoNext = this.endsIntoNextDay(attendanceSession, day);
+        const enter = this.formatAttendanceSessionStart(attendanceSession, day);
+        const leave = this.formatAttendanceSessionEnd(attendanceSession, day);
         const enterNote = fromPrev
-          ? `<span class="session-cross-tag">継続</span>`
+          ? `<span class="attendance-session-cross-tag">継続</span>`
           : "";
         const leaveNote = intoNext
-          ? `<span class="session-cross-tag">継続</span>`
+          ? `<span class="attendance-session-cross-tag">継続</span>`
           : "";
         return `<tr>
-          <td class="session-num">${index + 1}</td>
+          <td class="attendance-session-num">${index + 1}</td>
           <td>${enter}${enterNote}</td>
           <td>${leave}${leaveNote}</td>
-          <td>${formatDuration(session.duration_seconds)}</td>
+          <td>${formatDuration(attendanceSession.duration_seconds)}</td>
         </tr>`;
       })
       .join("");
@@ -279,7 +283,9 @@ const SessionDetailDialog = {
     this.title.textContent = `${dash(member.name)} (${GradeConfig.label(member.grade)})`;
     this.meta.textContent = day ? formatDayLabel(day) : "";
     this.total.textContent = formatDuration(member.total_present_seconds);
-    this.count.textContent = `${member.session_count ?? (member.sessions || []).length}回`;
+    const sessionCount =
+      member.attendance_session_count ?? (member.attendance_sessions || []).length;
+    this.count.textContent = `${sessionCount}回`;
     this.renderNotes(member, day);
     this.renderChart(member, day);
     this.renderTable(member, day);

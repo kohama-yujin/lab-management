@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 JST = ZoneInfo("Asia/Tokyo")
 
 
-class DaySessionClip(TypedDict):
+class DayAttendanceSessionClip(TypedDict):
     """当日にクリップした在室セッション1本。"""
 
     start_at: str
@@ -39,8 +39,8 @@ class DayMemberRow(TypedDict):
     arrived_from_previous_day: bool
     left_into_next_day: bool
     total_present_seconds: int
-    session_count: int
-    sessions: list[DaySessionClip]
+    attendance_session_count: int
+    attendance_sessions: list[DayAttendanceSessionClip]
 
 
 def _day_bounds(*, now: datetime | None = None) -> tuple[datetime, datetime, datetime]:
@@ -66,21 +66,21 @@ def aggregate_member_day(
     member_id: int,
     name: str,
     grade: str,
-    sessions: list[tuple[datetime, datetime | None]],
+    attendance_sessions: list[tuple[datetime, datetime | None]],
     day_start: datetime,
     day_end: datetime,
     now: datetime,
 ) -> DayMemberRow | None:
     """
     1メンバー分の当日表示を集計する。
-    sessions: (start_at, end_at)。当日と重ならなければ None。
+    attendance_sessions: (start_at, end_at)。当日と重ならなければ None。
     """
-    clips: list[DaySessionClip] = []
+    clips: list[DayAttendanceSessionClip] = []
     raw_starts: list[datetime] = []
     raw_ends: list[datetime] = []
     present = False
 
-    for start_at, end_at in sessions:
+    for start_at, end_at in attendance_sessions:
         start_at = _ensure_jst(start_at)
         end_at = _ensure_jst(end_at) if end_at is not None else None
         open_session = end_at is None
@@ -153,22 +153,22 @@ def aggregate_member_day(
         "arrived_from_previous_day": arrived_from_previous_day,
         "left_into_next_day": left_at_is_end_of_day,
         "total_present_seconds": max(0, total_seconds),
-        "session_count": len(clips),
-        "sessions": clips,
+        "attendance_session_count": len(clips),
+        "attendance_sessions": clips,
     }
 
 
-def _build_revision(session_rows: list[tuple[Any, ...]], now: datetime) -> int:
+def _build_revision(attendance_session_rows: list[tuple[Any, ...]], now: datetime) -> int:
     """
-    セッション変化と「分」の進行を検知する revision。
+    在室セッション変化と「分」の進行を検知する revision。
     minute_bucket は必ず1回だけ混ぜる（在室中が偶数人だと XOR が打ち消し合うため）。
     """
     minute_bucket = int(now.timestamp()) // 60
-    if not session_rows:
+    if not attendance_session_rows:
         return minute_bucket & 0x7FFFFFFF
 
-    revision = len(session_rows) * 1_000_000
-    for row in session_rows:
+    revision = len(attendance_session_rows) * 1_000_000
+    for row in attendance_session_rows:
         session_id = int(row[0])
         end_at = row[5]
         revision ^= session_id * 1_000_003
@@ -233,12 +233,12 @@ def get_today_status() -> dict[str, Any]:
             grouped[member_id] = {
                 "name": str(row[2]),
                 "grade": str(row[3]),
-                "sessions": [],
+                "attendance_sessions": [],
             }
             ordered_ids.append(member_id)
         start_at = _ensure_jst(row[4])
         end_at = _ensure_jst(row[5]) if row[5] is not None else None
-        grouped[member_id]["sessions"].append((start_at, end_at))
+        grouped[member_id]["attendance_sessions"].append((start_at, end_at))
 
     by_grade: dict[str, list[DayMemberRow]] = {grade: [] for grade in grades}
     count = 0
@@ -250,7 +250,7 @@ def get_today_status() -> dict[str, Any]:
             member_id=member_id,
             name=item["name"],
             grade=item["grade"],
-            sessions=item["sessions"],
+            attendance_sessions=item["attendance_sessions"],
             day_start=day_start,
             day_end=day_end,
             now=now,

@@ -87,12 +87,12 @@ function renderBoards(status) {
     })
     .join("");
 
-  SessionDetailDialog.refresh(status);
+  AttendanceSessionDetailDialog.refresh(status);
 }
 
 function renderEmpty(message) {
   lastStatus = null;
-  SessionDetailDialog.close();
+  AttendanceSessionDetailDialog.close();
   els.viewDate.textContent = "—";
   els.subtitle.textContent = message;
   els.boards.innerHTML = `<p class="history-empty">${message}</p>`;
@@ -111,7 +111,7 @@ async function loadDay() {
   els.viewDate.textContent = formatDayLabel(day);
   updateNavButtons();
   els.subtitle.textContent = "読み込み中…";
-  SessionDetailDialog.close();
+  AttendanceSessionDetailDialog.close();
 
   try {
     const res = await fetch(`/history/${day}`, { cache: "no-store" });
@@ -129,11 +129,11 @@ async function loadDay() {
 
 async function init() {
   try {
-    await SessionDetailDialog.loadPartial(els.dialogRoot);
-    SessionDetailDialog.init();
-    SessionDetailDialog.wireBoard(els.boards, (memberId) => {
+    await AttendanceSessionDetailDialog.loadPartial(els.dialogRoot);
+    AttendanceSessionDetailDialog.init();
+    AttendanceSessionDetailDialog.wireBoard(els.boards, (memberId) => {
       if (!lastStatus) return;
-      SessionDetailDialog.open(memberId, lastStatus);
+      AttendanceSessionDetailDialog.open(memberId, lastStatus);
     });
     await GradeConfig.ensureLoaded();
     const res = await fetch("/history/dates", { cache: "no-store" });
