@@ -11,7 +11,6 @@ const els = {
   clockDate: document.getElementById("clock-date"),
   clockTime: document.getElementById("clock-time"),
   boards: document.getElementById("boards"),
-  openRegister: null,
   dialogRoot: document.getElementById("member-dialogs"),
 };
 
@@ -116,35 +115,43 @@ async function loadMoreGraduatedMembers() {
 }
 
 function renderMemberRows(rows, options = {}) {
-  const { graduated = false } = options;
+  const { graduated = false, showActions = false } = options;
 
   return rows
-    .map(
-      (member) => `<tr>
+    .map((member) => {
+      const actionsCell = showActions
+        ? `<td class="member-actions">${
+            AuthBar.canEditMember(member.id)
+              ? `<button type="button" class="row-btn" data-edit-id="${member.id}">編集</button>`
+              : ""
+          }</td>`
+        : "";
+
+      return `<tr>
             <td>${dash(member.name)}</td>
             <td class="col-username">${dash(member.username)}</td>
             <td class="col-role">${dash(RoleConfig.label(member.role))}</td>
             ${graduated ? `<td>${dash(GradeConfig.label(member.grade))}</td><td>${member.graduation_year}年卒</td>` : ""}
-            <td class="member-actions">
-              <button type="button" class="row-btn" data-edit-id="${member.id}">編集</button>
-            </td>
-          </tr>`
-    )
+            ${actionsCell}
+          </tr>`;
+    })
     .join("");
 }
 
 function renderMemberTable(rows, options = {}) {
   const { graduated = false } = options;
+  const showActions = AuthBar.isLoggedIn();
+  const actionsHeader = showActions ? "<th></th>" : "";
   const headers = graduated
-    ? `<th>名前</th><th class="col-username">ユーザーID</th><th class="col-role">役職</th><th>学年</th><th>卒業</th><th></th>`
-    : `<th>名前</th><th class="col-username">ユーザーID</th><th>役職</th><th></th>`;
+    ? `<th>名前</th><th class="col-username">ユーザーID</th><th class="col-role">役職</th><th>学年</th><th>卒業</th>${actionsHeader}`
+    : `<th>名前</th><th class="col-username">ユーザーID</th><th>役職</th>${actionsHeader}`;
 
   return `<table>
     <thead>
       <tr>${headers}</tr>
     </thead>
     <tbody>
-      ${renderMemberRows(rows, options)}
+      ${renderMemberRows(rows, { graduated, showActions })}
     </tbody>
   </table>`;
 }
@@ -259,12 +266,6 @@ async function loadDialogPartials() {
 async function boot() {
   try {
     await SiteLayout.mount();
-    els.openRegister = document.getElementById("open-register");
-    if (els.openRegister) {
-      els.openRegister.addEventListener("click", () => {
-        RegisterDialog.open();
-      });
-    }
 
     DisplayUtils.startClock(els.clockDate, els.clockTime);
 

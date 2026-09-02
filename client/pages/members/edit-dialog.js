@@ -29,7 +29,19 @@ const EditDialog = {
     this.form.elements.graduation_year.value = graduated ? String(member.graduation_year) : "";
     this.form.elements.graduation_year.disabled = !graduated;
 
+    this.applyRoleFieldVisibility();
     MemberFormUtils.openDialog(this.dialog);
+  },
+
+  /**
+   * 一般は役職を変更できないため、役職欄を非表示にする。
+   */
+  applyRoleFieldVisibility() {
+    const roleField = this.form.elements.role?.closest(".form-field");
+    if (!roleField) {
+      return;
+    }
+    roleField.hidden = !AuthBar.isAdmin();
   },
 
   fillSelects() {
