@@ -5,7 +5,6 @@ import { renderWebviewHtml } from '../webview/renderHtml';
 
 type WebviewToExt =
 	| { type: 'ready' }
-	| { type: 'checkIn' }
 	| { type: 'checkOut' };
 
 type MessageHandler = (msg: WebviewToExt) => void | Promise<void>;
@@ -38,7 +37,10 @@ export class StatusWebviewProvider implements vscode.WebviewViewProvider {
 			localResourceRoots: [statusRoot, soundsRoot],
 		};
 
-		const soundUri = webviewView.webview.asWebviewUri(
+		const checkinSoundUri = webviewView.webview.asWebviewUri(
+			vscode.Uri.joinPath(soundsRoot, 'checkin.wav'),
+		);
+		const checkoutSoundUri = webviewView.webview.asWebviewUri(
 			vscode.Uri.joinPath(soundsRoot, 'checkout.wav'),
 		);
 		webviewView.webview.html = renderWebviewHtml(
@@ -48,7 +50,9 @@ export class StatusWebviewProvider implements vscode.WebviewViewProvider {
 			'status.html',
 			'status.css',
 			'status.js',
-		).replaceAll('{{soundUri}}', soundUri.toString());
+		)
+			.replaceAll('{{checkinSoundUri}}', checkinSoundUri.toString())
+			.replaceAll('{{checkoutSoundUri}}', checkoutSoundUri.toString());
 
 		webviewView.webview.onDidReceiveMessage((msg: WebviewToExt) => {
 			void this.onMessage(msg);

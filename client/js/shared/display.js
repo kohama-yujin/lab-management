@@ -24,6 +24,42 @@ const DisplayUtils = {
     return `${m}分`;
   },
 
+  /**
+   * 総作業時間表示。0 秒のときは「-」。
+   * @param {number | undefined | null} seconds
+   */
+  formatWorkTotal(seconds) {
+    const s = Math.max(0, Number(seconds) || 0);
+    if (s === 0) return "-";
+    return this.formatDuration(s);
+  },
+
+  /**
+   * ボードの総作業セル HTML。作業中は青いリッチドットを付ける。
+   * @param {{ working?: boolean, total_work_seconds?: number }} member
+   */
+  formatWorkCell(member) {
+    const total = member?.total_work_seconds ?? 0;
+    const duration = this.formatWorkTotal(total);
+    const prefix =
+      member?.working && total > 0
+        ? '<span class="work-active-dot" aria-hidden="true"></span>'
+        : "";
+    return `<span class="work-cell">${prefix}${duration}</span>`;
+  },
+
+  /**
+   * 詳細 KPI 用の総作業表示。作業中はドット付きの HTML を返す。
+   * @param {{ working?: boolean, total_work_seconds?: number }} member
+   */
+  formatWorkKpiValue(member) {
+    const total = member?.total_work_seconds ?? 0;
+    const duration = this.formatWorkTotal(total);
+    if (total === 0) return "-";
+    if (!member?.working) return duration;
+    return `<span class="with-work-dot"><span class="work-active-dot" aria-hidden="true"></span>${duration}</span>`;
+  },
+
   formatDayLabel(isoDay) {
     const d = new Date(`${isoDay}T12:00:00`);
     if (Number.isNaN(d.getTime())) return isoDay;

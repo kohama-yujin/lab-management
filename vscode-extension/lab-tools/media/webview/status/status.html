@@ -12,7 +12,10 @@
     <p id="banner" class="banner" hidden></p>
 
     <section class="section">
-      <h2 class="section-title">自分の状態</h2>
+      <div class="section-header">
+        <h2 class="section-title">自分の状態</h2>
+        <span id="self-arrived" class="self-arrived" hidden></span>
+      </div>
       <div id="self-area" class="self-area"></div>
     </section>
 
@@ -25,7 +28,8 @@
     </section>
   </div>
 
-  <audio id="checkout-sound" src="{{soundUri}}" preload="auto"></audio>
+  <audio id="checkin-sound" src="{{checkinSoundUri}}" preload="auto"></audio>
+  <audio id="checkout-sound" src="{{checkoutSoundUri}}" preload="auto"></audio>
   <script nonce="{{nonce}}" src="{{scriptUri}}"></script>
 </body>
 </html>

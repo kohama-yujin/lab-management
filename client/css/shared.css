@@ -641,7 +641,7 @@ body {
     padding: 0.5rem 0.75rem 0.75rem;
   }
 
-  .board .col-username, .board .col-arrived, .board .col-left {
+  .board .col-username, .board .col-arrived, .board .col-left, .board .col-work {
     display: none;
   }
 

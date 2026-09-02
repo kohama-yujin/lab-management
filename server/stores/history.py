@@ -258,6 +258,21 @@ def get_history_for_day(day: str) -> dict[str, Any] | None:
                     (day_end, day_start),
                 )
                 rows = cur.fetchall()
+                cur.execute(
+                    """
+                    SELECT
+                        s.id,
+                        s.member_id,
+                        s.start_at,
+                        s.end_at
+                    FROM work_sessions s
+                    WHERE s.start_at < %s
+                      AND (s.end_at IS NULL OR s.end_at > %s)
+                    ORDER BY s.member_id ASC, s.start_at ASC
+                    """,
+                    (day_end, day_start),
+                )
+                work_rows = cur.fetchall()
                 role_as_of = _fetch_role_codes_as_of(cur, list(enrolled.keys()), day_end)
     except StoreError:
         raise
@@ -279,12 +294,21 @@ def get_history_for_day(day: str) -> dict[str, Any] | None:
                 "name": enrolled[member_id][0],
                 "grade": enrolled[member_id][1],
                 "role": role_as_of.get(member_id),
-                "sessions": [],
+                "attendance_sessions": [],
+                "work_sessions": [],
             }
             ordered_ids.append(member_id)
         start_at = _ensure_jst(row[3])
         end_at = _ensure_jst(row[4]) if row[4] is not None else day_end
-        grouped[member_id]["sessions"].append((start_at, end_at))
+        grouped[member_id]["attendance_sessions"].append((start_at, end_at))
+
+    for row in work_rows:
+        member_id = int(row[1])
+        if member_id not in grouped:
+            continue
+        start_at = _ensure_jst(row[2])
+        end_at = _ensure_jst(row[3]) if row[3] is not None else day_end
+        grouped[member_id]["work_sessions"].append((start_at, end_at))
 
     by_grade: dict[str, list[DayMemberRow]] = {grade: [] for grade in grades}
     count = 0
@@ -295,7 +319,8 @@ def get_history_for_day(day: str) -> dict[str, Any] | None:
             member_id=member_id,
             name=item["name"],
             grade=item["grade"],
-            sessions=item["sessions"],
+            attendance_sessions=item["attendance_sessions"],
+            work_sessions=item["work_sessions"],
             day_start=day_start,
             day_end=day_end,
             now=day_end,
@@ -305,8 +330,9 @@ def get_history_for_day(day: str) -> dict[str, Any] | None:
         grade = member_row["grade"]
         if grade not in by_grade:
             continue
-        # 過去日は在室中表示にしない
+        # 過去日は在室中・作業中と表示しない
         member_row["present"] = False
+        member_row["working"] = False
         member_row["role"] = item.get("role")
         by_grade[grade].append(member_row)
         count += 1

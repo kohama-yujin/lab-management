@@ -4,10 +4,6 @@
 --   roles  … 権限（一般・管理者）。将来の管理機能用
 --   grades … 学年マスタ（表示順の唯一の定義元。）
 --
--- attendance_sessions:
---   出入りのたびに1行。end_at IS NULL は在室中。
---   日次集計の境界は JST 0:00（アプリ側）。
---
 -- member_grade_changes / member_role_changes / member_graduation_changes:
 --   登録・変更のたびに1行追記。履歴日の属性は「その日終わりまでの最新行」。
 --   graduation_year_* が NULL なら在学。
@@ -116,6 +112,9 @@ CREATE INDEX member_graduation_changes_member_created_idx
     ON member_graduation_changes (member_id, created_at DESC, id DESC);
 
 
+-- attendance_sessions:
+--   出入りのたびに1行。end_at IS NULL は在室中。
+--   日次集計の境界は JST 0:00（アプリ側）。
 CREATE TABLE attendance_sessions (
     id              BIGSERIAL       PRIMARY KEY,
     member_id       BIGINT          NOT NULL,
@@ -141,3 +140,35 @@ CREATE INDEX attendance_sessions_member_start_idx
 -- 日付範囲検索用（JST 日付への変換はアプリ側）
 CREATE INDEX attendance_sessions_start_at_idx
     ON attendance_sessions (start_at);
+
+
+-- work_sessions:
+--   作業のたびに1行。end_at IS NULL は作業中。
+--   v1 では location は常に 'lab'。
+
+CREATE TYPE work_location AS ENUM ('lab', 'outside_lab');
+
+CREATE TABLE work_sessions (
+    id              BIGSERIAL       PRIMARY KEY,
+    member_id       BIGINT          NOT NULL,
+    location        work_location   NOT NULL DEFAULT 'lab',
+    start_at        TIMESTAMPTZ     NOT NULL,
+    end_at          TIMESTAMPTZ,
+
+    CONSTRAINT work_sessions_member_id_fkey
+        FOREIGN KEY (member_id) REFERENCES members (id) ON DELETE RESTRICT,
+    CONSTRAINT work_sessions_time_check CHECK (
+        end_at IS NULL OR end_at >= start_at
+    )
+);
+
+-- 作業中セッションはメンバーごとに最大1件
+CREATE UNIQUE INDEX work_sessions_one_open_per_member_idx
+    ON work_sessions (member_id)
+    WHERE end_at IS NULL;
+
+CREATE INDEX work_sessions_member_start_idx
+    ON work_sessions (member_id, start_at DESC);
+
+CREATE INDEX work_sessions_start_at_idx
+    ON work_sessions (start_at);

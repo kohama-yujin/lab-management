@@ -95,11 +95,23 @@ def start_attendance(username: str, password: str) -> AttendanceResult:
         raise StoreError("在室登録に失敗しました", 500) from exc
 
 
+def _close_open_work_sessions(cur, member_id: int) -> None:
+    """open な work_sessions を now() で閉じる。"""
+    cur.execute(
+        """
+        UPDATE work_sessions
+        SET end_at = now()
+        WHERE member_id = %s AND end_at IS NULL
+        """,
+        (member_id,),
+    )
+
+
 def end_attendance(username: str, password: str) -> AttendanceResult:
     """
     在室セッションを終了する。
     start_at の日付は見ず、end_at IS NULL の行を閉じる（日付またぎ対応）。
-    開いているセッションが無ければ already absent として成功扱い。
+    開いている在室が無くても、open な work_sessions は常に閉じる。
     """
     try:
         with connect() as conn:
@@ -123,6 +135,8 @@ def end_attendance(username: str, password: str) -> AttendanceResult:
                     (member_id,),
                 )
                 closed = cur.fetchone()
+                _close_open_work_sessions(cur, member_id)
+                conn.commit()
                 if not closed:
                     return {
                         "ok": True,
@@ -130,7 +144,6 @@ def end_attendance(username: str, password: str) -> AttendanceResult:
                         "message": "すでに不在です",
                     }
 
-                conn.commit()
                 return {
                     "ok": True,
                     "ignored": False,

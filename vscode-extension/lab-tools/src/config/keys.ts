@@ -8,8 +8,7 @@ export const ConfigKeys = {
 	username: `${CONFIG_SECTION}.username`,
 	serverIp: `${CONFIG_SECTION}.serverIp`,
 	publicUrl: `${CONFIG_SECTION}.publicUrl`,
-	autoCheckIn: `${CONFIG_SECTION}.autoCheckIn`,
-	soundOnCheckOut: `${CONFIG_SECTION}.soundOnCheckOut`,
+	idleTimeoutMinutes: `${CONFIG_SECTION}.workTracking.idleTimeoutMinutes`,
 } as const;
 
 export const SecretKeys = {

@@ -10,6 +10,15 @@
   --chip-away-bg: rgba(60, 25, 25, 0.72);
   --chip-away-text: #f0b8b8;
   --chip-away-dot: #ff6b6b;
+  --chip-work-border: rgba(96, 165, 250, 0.4);
+  --chip-work-glow: rgba(96, 165, 250, 0.18);
+  --chip-work-bg: rgba(20, 40, 80, 0.72);
+  --chip-work-text: #a8c8f0;
+  --chip-work-dot: #60a5fa;
+  --chip-work-idle-border: rgba(128, 128, 128, 0.35);
+  --chip-work-idle-bg: rgba(40, 40, 40, 0.55);
+  --chip-work-idle-text: var(--vscode-descriptionForeground);
+  --chip-work-idle-dot: rgba(160, 160, 160, 0.7);
 }
 
 body {
@@ -46,7 +55,7 @@ body {
   margin-bottom: 0;
 }
 
-.last-updated {
+.last-updated, .self-arrived {
   flex-shrink: 0;
   font-size: 0.72rem;
   font-variant-numeric: tabular-nums;
@@ -72,8 +81,16 @@ body {
 .self-area {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: stretch;
   gap: 10px;
+}
+
+.self-chips {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
 }
 
 .hint {
@@ -131,6 +148,35 @@ body {
 .chip.away .dot {
   background: var(--chip-away-dot);
   box-shadow: 0 0 4px var(--chip-away-dot);
+}
+
+.chip.work {
+  background: var(--chip-work-bg);
+  color: var(--chip-work-text);
+  border: 1px solid var(--chip-work-border);
+  box-shadow:
+    0 0 5px var(--chip-work-glow),
+    0 0 12px color-mix(in srgb, var(--chip-work-glow) 40%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.chip.work .dot {
+  background: var(--chip-work-dot);
+  box-shadow: 0 0 5px var(--chip-work-dot);
+  animation: pulse-dot 2.2s ease-in-out infinite;
+}
+
+.chip.work.idle {
+  background: var(--chip-work-idle-bg);
+  color: var(--chip-work-idle-text);
+  border: 1px solid var(--chip-work-idle-border);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.chip.work.idle .dot {
+  background: var(--chip-work-idle-dot);
+  box-shadow: none;
+  animation: none;
 }
 
 .chip .sep {

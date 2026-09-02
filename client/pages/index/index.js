@@ -79,6 +79,7 @@ function renderBoards(status) {
                   <th class="col-arrived">到着</th>
                   <th class="col-left">帰宅</th>
                   <th>総在室</th>
+                  <th class="col-work">総作業</th>
                   <th class="col-detail"></th>
                 </tr>
               </thead>
@@ -98,6 +99,7 @@ function renderBoards(status) {
                       <td class="col-total">
                         <span class="total-duration">${formatDuration(t.total_present_seconds)}</span>
                       </td>
+                      <td class="col-total col-work">${DisplayUtils.formatWorkCell(t)}</td>
                       <td class="col-detail">
                         <button
                           type="button"
@@ -118,7 +120,7 @@ function renderBoards(status) {
     })
     .join("");
 
-  SessionDetailDialog.refresh(status);
+  DetailDialog.refresh(status);
 }
 
 async function watch() {
@@ -152,11 +154,11 @@ async function watch() {
 async function boot() {
   DisplayUtils.startClock(els.clockDate, els.clockTime);
   try {
-    await SessionDetailDialog.loadPartial(els.dialogRoot);
-    SessionDetailDialog.init();
-    SessionDetailDialog.wireBoard(els.boards, (memberId) => {
+    await DetailDialog.loadPartial(els.dialogRoot);
+    DetailDialog.init();
+    DetailDialog.wireBoard(els.boards, (memberId) => {
       if (!lastStatus) return;
-      SessionDetailDialog.open(memberId, lastStatus);
+      DetailDialog.open(memberId, lastStatus);
     });
     await GradeConfig.ensureLoaded();
   } catch (err) {

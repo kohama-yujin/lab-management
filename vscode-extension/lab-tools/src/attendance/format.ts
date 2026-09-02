@@ -36,6 +36,19 @@ export function formatUpdatedAt(date: Date): string {
 }
 
 /**
+ * 自分の状態ヘッダー用に入室時刻（HH:mm）を返す。
+ */
+export function formatSelfArrivedLabel(row: DayMemberRow | undefined): string {
+	if (!row?.arrived_at) {
+		return '';
+	}
+	if (row.arrived_from_previous_day) {
+		return '0:00';
+	}
+	return formatTime(row.arrived_at);
+}
+
+/**
  * メンバー行の「到着 - 帰宅」表示文字列を組み立てる。
  */
 export function formatMemberTimeRange(row: DayMemberRow): string {

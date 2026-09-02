@@ -148,6 +148,7 @@ def fetch_status(conn: psycopg.Connection) -> dict[str, int | str]:
             "member_role_changes",
             "member_graduation_changes",
             "attendance_sessions",
+            "work_sessions",
         ):
             if not _table_exists(conn, table):
                 counts[table] = "（テーブルなし）"
@@ -233,6 +234,7 @@ def _print_status(status: dict[str, int | str]) -> None:
         "member_role_changes",
         "member_graduation_changes",
         "attendance_sessions",
+        "work_sessions",
     ):
         print(f"  {table}: {status[table]}")
 

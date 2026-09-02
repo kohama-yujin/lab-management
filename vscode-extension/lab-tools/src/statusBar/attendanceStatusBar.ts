@@ -12,28 +12,33 @@ const WARNING_BG = new vscode.ThemeColor('statusBarItem.warningBackground');
 const ERROR_BG = new vscode.ThemeColor('statusBarItem.errorBackground');
 
 /**
- * 在室サマリーをステータスバー左右に表示する。
- * 左: 自分の状態 / 右: 在室人数
+ * 在室・作業サマリーをステータスバー右に表示する。
+ * 左から: 自分の在室 / 作業時間 / 在室人数
  */
 export class AttendanceStatusBar {
 	readonly disposables: vscode.Disposable[] = [];
 
 	private readonly myItem: vscode.StatusBarItem;
+	private readonly workItem: vscode.StatusBarItem;
 	private readonly countItem: vscode.StatusBarItem;
 
 	constructor(
 		private readonly onMyStatusClick: () => void,
 		private readonly onCountClick: () => void,
 	) {
-		this.myItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 2);
+		this.myItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 3);
 		this.myItem.command = `${COMMAND_PREFIX}.toggleAttendance`;
 		this.myItem.show();
+
+		this.workItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 2);
+		this.workItem.command = `${COMMAND_PREFIX}.focusStatusView`;
+		this.workItem.show();
 
 		this.countItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 1);
 		this.countItem.command = `${COMMAND_PREFIX}.focusStatusView`;
 		this.countItem.show();
 
-		this.disposables.push(this.myItem, this.countItem);
+		this.disposables.push(this.myItem, this.workItem, this.countItem);
 	}
 
 	private resetMyItemStyle(): void {
@@ -51,9 +56,59 @@ export class AttendanceStatusBar {
 		this.myItem.backgroundColor = ERROR_BG;
 	}
 
+	private resetWorkItemStyle(): void {
+		this.workItem.color = undefined;
+		this.workItem.backgroundColor = undefined;
+	}
+
+	private setWorkItemWarningStyle(): void {
+		this.workItem.color = WARNING_FG;
+		this.workItem.backgroundColor = WARNING_BG;
+	}
+
 	private resetCountItemStyle(): void {
 		this.countItem.color = undefined;
 		this.countItem.backgroundColor = undefined;
+	}
+
+	private updateWorkItem(
+		status: StatusPayload | null,
+		memberId: number | null,
+		viewError: LabError | null,
+	): void {
+		if (viewError) {
+			const label = statusBarLabel(viewError);
+			this.workItem.text = '$(error) 作業: ?';
+			this.workItem.tooltip = errorTooltip(viewError);
+			if (label.style === 'warning') {
+				this.setWorkItemWarningStyle();
+			} else {
+				this.workItem.color = ERROR_FG;
+				this.workItem.backgroundColor = ERROR_BG;
+			}
+			return;
+		}
+
+		if (!status) {
+			this.workItem.text = '$(loading~spin) 作業 …';
+			this.workItem.tooltip = '読み込み中';
+			this.resetWorkItemStyle();
+			return;
+		}
+
+		if (memberId === null) {
+			this.workItem.text = '$(warning) 作業: 未登録';
+			this.workItem.tooltip = 'メンバー情報を取得できません';
+			this.setWorkItemWarningStyle();
+			return;
+		}
+
+		const self = findMemberById(status, memberId);
+		const working = self?.working ?? false;
+		const duration = formatDurationChip(self?.total_work_seconds ?? 0);
+		this.workItem.text = `$(history) 作業 ${duration}`;
+		this.workItem.tooltip = working ? `作業中 · 総作業 ${duration}` : `総作業 ${duration}`;
+		this.resetWorkItemStyle();
 	}
 
 	/**
@@ -65,6 +120,8 @@ export class AttendanceStatusBar {
 		_viewUsername: string,
 		viewError: LabError | null,
 	): void {
+		this.updateWorkItem(status, memberId, viewError);
+
 		if (viewError) {
 			const label = statusBarLabel(viewError);
 			this.myItem.text = label.text;
@@ -130,4 +187,3 @@ export class AttendanceStatusBar {
 		}
 	}
 }
-

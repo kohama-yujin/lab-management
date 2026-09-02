@@ -8,6 +8,7 @@ from server.config import load_api_key, load_public_tunnel_url
 from server.db import StoreError
 from server.member_validation import MemberValidationError
 from server.stores import attendance as attendance_store
+from server.stores import work as work_store
 from server.stores.grade import get_grade_order
 from server.stores.history import get_history_for_day, list_history_dates
 from server.stores.member import create_member, fetch_member_by_credentials, list_active_members, list_graduated_members, update_member
@@ -234,6 +235,57 @@ async def end_attendance(body: Annotated[dict[str, Any], Depends(require_api_key
         raise ApiError("username と password は必須です", 400)
 
     result = attendance_store.end_attendance(str(username), str(password))
+    return {
+        "ok": result["ok"],
+        "ignored": result["ignored"],
+        "message": result["message"],
+    }
+
+
+@api_router.post("/start_work")
+async def start_work(body: Annotated[dict[str, Any], Depends(require_api_key)]) -> dict[str, Any]:
+    """作業セッションの開始。在室中のみ。"""
+    username = body.get("username")
+    password = body.get("password")
+
+    if not username or not password:
+        raise ApiError("username と password は必須です", 400)
+
+    location = body.get("location")
+    try:
+        result = work_store.start_work(
+            str(username),
+            str(password),
+            location=str(location) if location is not None else None,
+        )
+    except StoreError as exc:
+        raise ApiError(exc.message, exc.status_code)
+
+    return {
+        "ok": result["ok"],
+        "ignored": result["ignored"],
+        "message": result["message"],
+    }
+
+
+@api_router.post("/end_work")
+async def end_work(body: Annotated[dict[str, Any], Depends(require_api_key)]) -> dict[str, Any]:
+    """作業セッションの終了。end_at 省略時は現在時刻。"""
+    username = body.get("username")
+    password = body.get("password")
+
+    if not username or not password:
+        raise ApiError("username と password は必須です", 400)
+
+    try:
+        result = work_store.end_work(
+            str(username),
+            str(password),
+            end_at=body.get("end_at"),
+        )
+    except StoreError as exc:
+        raise ApiError(exc.message, exc.status_code)
+
     return {
         "ok": result["ok"],
         "ignored": result["ignored"],

@@ -48,6 +48,7 @@ function renderBoards(status) {
                   <th class="col-arrived">到着</th>
                   <th class="col-left">帰宅</th>
                   <th>総在室</th>
+                  <th class="col-work">総作業</th>
                   <th class="col-detail"></th>
                 </tr>
               </thead>
@@ -67,6 +68,7 @@ function renderBoards(status) {
                       <td class="col-total">
                         <span class="total-duration">${formatDuration(t.total_present_seconds)}</span>
                       </td>
+                      <td class="col-total col-work">${DisplayUtils.formatWorkCell(t)}</td>
                       <td class="col-detail">
                         <button
                           type="button"
@@ -87,12 +89,12 @@ function renderBoards(status) {
     })
     .join("");
 
-  SessionDetailDialog.refresh(status);
+  DetailDialog.refresh(status);
 }
 
 function renderEmpty(message) {
   lastStatus = null;
-  SessionDetailDialog.close();
+  DetailDialog.close();
   els.viewDate.textContent = "—";
   els.subtitle.textContent = message;
   els.boards.innerHTML = `<p class="history-empty">${message}</p>`;
@@ -111,7 +113,7 @@ async function loadDay() {
   els.viewDate.textContent = formatDayLabel(day);
   updateNavButtons();
   els.subtitle.textContent = "読み込み中…";
-  SessionDetailDialog.close();
+  DetailDialog.close();
 
   try {
     const res = await fetch(`/history/${day}`, { cache: "no-store" });
@@ -129,11 +131,11 @@ async function loadDay() {
 
 async function init() {
   try {
-    await SessionDetailDialog.loadPartial(els.dialogRoot);
-    SessionDetailDialog.init();
-    SessionDetailDialog.wireBoard(els.boards, (memberId) => {
+    await DetailDialog.loadPartial(els.dialogRoot);
+    DetailDialog.init();
+    DetailDialog.wireBoard(els.boards, (memberId) => {
       if (!lastStatus) return;
-      SessionDetailDialog.open(memberId, lastStatus);
+      DetailDialog.open(memberId, lastStatus);
     });
     await GradeConfig.ensureLoaded();
     const res = await fetch("/history/dates", { cache: "no-store" });
