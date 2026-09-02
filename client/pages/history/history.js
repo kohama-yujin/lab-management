@@ -131,6 +131,8 @@ async function loadDay() {
 
 async function init() {
   try {
+    await SiteLayout.mount();
+    DisplayUtils.startClock(els.clockDate, els.clockTime);
     await DetailDialog.loadPartial(els.dialogRoot);
     DetailDialog.init();
     DetailDialog.wireBoard(els.boards, (memberId) => {
@@ -163,5 +165,4 @@ els.nextDay.addEventListener("click", () => {
   loadDay();
 });
 
-DisplayUtils.startClock(els.clockDate, els.clockTime);
 init();

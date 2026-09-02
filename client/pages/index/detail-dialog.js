@@ -350,7 +350,7 @@ const DetailDialog = {
     const { dash, formatDuration, formatDayLabel } = DisplayUtils;
     const day = status.day || "";
     this.applyGradeTheme(member);
-    this.title.textContent = `${dash(member.name)} (${GradeConfig.label(member.grade)})`;
+    this.title.textContent = `${dash(member.name)} / ${GradeConfig.label(member.grade)}`;
     this.meta.textContent = day ? formatDayLabel(day) : "";
     this.total.textContent = formatDuration(member.total_present_seconds);
     if (this.workTotal) {

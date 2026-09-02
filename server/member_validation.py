@@ -24,23 +24,23 @@ class MemberValidationError(Exception):
 
 
 def normalize_username(username: str) -> str:
-    """ユーザー名を検証して正規化する。"""
+    """ユーザーIDを検証して正規化する。"""
     value = (username or "").strip()
     if not value:
-        raise MemberValidationError("ユーザー名は必須です", 400)
+        raise MemberValidationError("ユーザーIDは必須です", 400)
     if len(value) < USERNAME_MIN_LEN:
         raise MemberValidationError(
-            f"ユーザー名は {USERNAME_MIN_LEN} 文字以上にしてください",
+            f"ユーザーIDは {USERNAME_MIN_LEN} 文字以上にしてください",
             400,
         )
     if len(value) > USERNAME_MAX_LEN:
         raise MemberValidationError(
-            f"ユーザー名は {USERNAME_MAX_LEN} 文字以内にしてください",
+            f"ユーザーIDは {USERNAME_MAX_LEN} 文字以内にしてください",
             400,
         )
     if not USERNAME_PATTERN.fullmatch(value):
         raise MemberValidationError(
-            "ユーザー名は英数字とアンダースコア（_）のみ使用できます",
+            "ユーザーIDは英数字とアンダースコア（_）のみ使用できます",
             400,
         )
     return value

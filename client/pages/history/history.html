@@ -13,10 +13,11 @@
     <link rel="stylesheet" href="/client/css/shared.css" />
     <link rel="stylesheet" href="/client/pages/index/index.css" />
   </head>
-  <body>
-    <header class="top">
-      <div class="top-left">
-        <h1 class="title">在室履歴</h1>
+  <body data-page="history" data-title="在室履歴">
+    <div id="site-header-mount"></div>
+
+    <div class="sub-header">
+      <div class="sub-header-left">
         <div class="date-nav" role="group" aria-label="日付の切替">
           <button type="button" id="prev-day" class="date-nav-btn" aria-label="前の日">
             ＜
@@ -27,22 +28,22 @@
           </button>
         </div>
         <p id="subtitle" class="subtitle">過去の在室記録を表示します</p>
-        <nav class="nav-actions" aria-label="画面切替">
-          <a class="nav-btn" href="/">在室管理</a>
-          <a class="nav-btn" href="/members">メンバー</a>
-        </nav>
       </div>
-      <div class="top-right">
+      <div class="sub-header-right">
         <p id="clock-date" class="clock-date">—</p>
         <p id="clock-time" class="clock-time">—</p>
       </div>
-    </header>
+    </div>
+
+    <div id="nav-actions-mount" class="nav-actions-mount"></div>
 
     <main id="boards" class="boards" aria-live="polite"></main>
 
     <div id="history-dialogs"></div>
 
     <script src="/client/js/shared/display.js"></script>
+    <script src="/client/js/shared/auth.js"></script>
+    <script src="/client/js/shared/layout.js"></script>
     <script src="/client/js/shared/grades.js"></script>
     <script src="/client/pages/index/detail-dialog.js"></script>
     <script src="/client/pages/history/history.js"></script>

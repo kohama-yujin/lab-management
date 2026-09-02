@@ -118,9 +118,7 @@ const EditDialog = {
       }
 
       MemberFormUtils.closeDialog(this.dialog);
-      if (window.MemberPage?.reload) {
-        await window.MemberPage.reload();
-      }
+      window.location.reload();
     } catch (err) {
       MemberFormUtils.showError(this.error, err.message || "更新に失敗しました");
     } finally {

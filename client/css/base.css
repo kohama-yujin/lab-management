@@ -1,0 +1,68 @@
+:root {
+  --ink: #1c2420;
+  --muted: #5e6a64;
+  --line: rgba(28, 36, 32, 0.12);
+  --bg: #f3f1eb;
+  --teacher: #e2e2e0;
+  --teacher-ink: #4a4a48;
+  --d3: #ddd0ea;
+  --d3-ink: #4a3568;
+  --d2: #e8dff2;
+  --d2-ink: #5c4578;
+  --d1: #f0eaf6;
+  --d1-ink: #6b5788;
+  --m2: #d7e8f5;
+  --m2-ink: #1e4b6e;
+  --m1: #e8d7b0;
+  --m1-ink: #6a4e1a;
+  --b4: #d8ecda;
+  --b4-ink: #2a5c34;
+  --b3: #c5e4ca;
+  --b3-ink: #245530;
+  --b2: #b4dcbd;
+  --b2-ink: #1f4c2c;
+  --b1: #a3d4b0;
+  --b1-ink: #1a4328;
+  --other: #f3d9d6;
+  --other-ink: #6e322c;
+  --graduated: #d8dde4;
+  --graduated-ink: #3e4654;
+  --present: #1f6b45;
+  --uncertain: #8a6a12;
+  --away: #7a4a32;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* .nav-btn などの display 指定が [hidden] を潰さないようにする */
+[hidden] {
+  display: none !important;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  font-family: "IBM Plex Sans JP", sans-serif;
+  color: var(--ink);
+  background:
+    radial-gradient(900px 500px at 0% 0%, #fff9ef 0%, transparent 55%),
+    radial-gradient(800px 480px at 100% 0%, #e7eef5 0%, transparent 50%),
+    var(--bg);
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

@@ -11,7 +11,7 @@ const els = {
   clockDate: document.getElementById("clock-date"),
   clockTime: document.getElementById("clock-time"),
   boards: document.getElementById("boards"),
-  openRegister: document.getElementById("open-register"),
+  openRegister: null,
   dialogRoot: document.getElementById("member-dialogs"),
 };
 
@@ -37,16 +37,6 @@ async function fetchActiveMembers() {
   const data = await res.json();
   members = Array.isArray(data.members) ? data.members : [];
 }
-
-async function reloadAllMembers() {
-  await fetchActiveMembers();
-  await fetchGraduatedMembers();
-  renderBoards();
-}
-
-window.MemberPage = {
-  reload: reloadAllMembers,
-};
 
 function isActive(member) {
   return member.graduation_year == null;
@@ -146,8 +136,8 @@ function renderMemberRows(rows, options = {}) {
 function renderMemberTable(rows, options = {}) {
   const { graduated = false } = options;
   const headers = graduated
-    ? `<th>名前</th><th class="col-username">ユーザー名</th><th class="col-role">役職</th><th>学年</th><th>卒業</th><th></th>`
-    : `<th>名前</th><th class="col-username">ユーザー名</th><th>役職</th><th></th>`;
+    ? `<th>名前</th><th class="col-username">ユーザーID</th><th class="col-role">役職</th><th>学年</th><th>卒業</th><th></th>`
+    : `<th>名前</th><th class="col-username">ユーザーID</th><th>役職</th><th></th>`;
 
   return `<table>
     <thead>
@@ -231,8 +221,7 @@ function renderGraduatedBoard() {
 function renderBoards() {
   const activeMembers = members.filter((member) => isActive(member));
   els.subtitle.textContent = `在学：${activeMembers.length}名 / 卒業：${graduatedState.total}名`;
-  els.rules.textContent = "現在、ログインなどのセキュリティ機能が十分に実装されていません。\n" +
-  "本システムはあなた達の善意に基づいた利用を想定しています。";
+  els.rules.textContent = "ユーザーIDとパスワードは、入退室時の認証に使用します。";
 
   if (!activeMembers.length && graduatedState.total === 0) {
     els.boards.innerHTML = `<p class="history-empty">メンバーが登録されていません</p>`;
@@ -267,14 +256,18 @@ async function loadDialogPartials() {
   els.dialogRoot.innerHTML = html;
 }
 
-els.openRegister.addEventListener("click", () => {
-  RegisterDialog.open();
-});
-
 async function boot() {
-  DisplayUtils.startClock(els.clockDate, els.clockTime);
-
   try {
+    await SiteLayout.mount();
+    els.openRegister = document.getElementById("open-register");
+    if (els.openRegister) {
+      els.openRegister.addEventListener("click", () => {
+        RegisterDialog.open();
+      });
+    }
+
+    DisplayUtils.startClock(els.clockDate, els.clockTime);
+
     await loadDialogPartials();
     RegisterDialog.init();
     EditDialog.init();

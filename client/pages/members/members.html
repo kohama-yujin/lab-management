@@ -12,31 +12,29 @@
     />
     <link rel="stylesheet" href="/client/css/shared.css" />
   </head>
-  <body>
-    <header class="top">
-      <div class="top-left">
-        <h1 class="title">メンバー</h1>
+  <body data-page="members" data-title="メンバー">
+    <div id="site-header-mount"></div>
+
+    <div class="sub-header">
+      <div class="sub-header-left">
         <p id="subtitle" class="subtitle">0名</p>
         <p id="rules" class="rules"></p>
-        <nav class="nav-actions" aria-label="画面切替">
-          <a class="nav-btn" href="/">在室管理</a>
-          <a class="nav-btn" href="/history">在室履歴</a>
-          <button type="button" id="open-register" class="nav-btn nav-btn-primary">
-            登録
-          </button>
-        </nav>
       </div>
-      <div class="top-right">
+      <div class="sub-header-right">
         <p id="clock-date" class="clock-date">—</p>
         <p id="clock-time" class="clock-time">—</p>
       </div>
-    </header>
+    </div>
+
+    <div id="nav-actions-mount" class="nav-actions-mount"></div>
 
     <main id="boards" class="boards" aria-live="polite"></main>
 
     <div id="member-dialogs"></div>
 
     <script src="/client/js/shared/display.js"></script>
+    <script src="/client/js/shared/auth.js"></script>
+    <script src="/client/js/shared/layout.js"></script>
     <script src="/client/js/shared/api.js"></script>
     <script src="/client/js/shared/member-validation.js"></script>
     <script src="/client/js/shared/grades.js"></script>
