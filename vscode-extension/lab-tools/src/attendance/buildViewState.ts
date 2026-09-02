@@ -2,7 +2,7 @@ import type { LabError } from '../errors/labError';
 import { LabErrors, toViewError } from '../errors/labError';
 import type { StatusPayload, StatusViewState } from '../api/types';
 import { findMemberById } from './findMember';
-import { formatDurationChip, formatMemberTimeRange, formatUpdatedAt } from './format';
+import { formatDurationChip, formatMemberTimeRange, formatSelfArrivedLabel, formatUpdatedAt } from './format';
 
 /**
  * GET /status の生データを Webview 表示用に変換する。
@@ -15,6 +15,7 @@ export function buildViewState(
 		username: string;
 		memberId: number | null;
 		lastUpdatedAt: Date | null;
+		workIdleTimeoutMinutes: number;
 	},
 ): StatusViewState {
 	const lastUpdatedLabel = options.lastUpdatedAt ? formatUpdatedAt(options.lastUpdatedAt) : '';
@@ -25,6 +26,7 @@ export function buildViewState(
 			viewError: toViewError(options.viewError),
 			username: options.username,
 			lastUpdatedLabel,
+			workIdleTimeoutMinutes: options.workIdleTimeoutMinutes,
 			self: null,
 			grades: [],
 		};
@@ -38,6 +40,7 @@ export function buildViewState(
 					durationLabel: formatDurationChip(selfRow?.total_present_seconds ?? 0),
 					working: selfRow?.working ?? false,
 					workDurationLabel: formatDurationChip(selfRow?.total_work_seconds ?? 0),
+					arrivedLabel: formatSelfArrivedLabel(selfRow),
 				}
 			: null;
 
@@ -58,6 +61,7 @@ export function buildViewState(
 		viewError: toViewError(options.viewError),
 		username: options.username,
 		lastUpdatedLabel,
+		workIdleTimeoutMinutes: options.workIdleTimeoutMinutes,
 		self,
 		grades,
 	};

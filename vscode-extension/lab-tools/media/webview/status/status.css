@@ -55,7 +55,7 @@ body {
   margin-bottom: 0;
 }
 
-.last-updated {
+.last-updated, .self-arrived {
   flex-shrink: 0;
   font-size: 0.72rem;
   font-variant-numeric: tabular-nums;

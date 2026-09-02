@@ -11,6 +11,7 @@ export type DayMemberRow = {
 	arrived_at: string | null;
 	left_at: string | null;
 	left_at_is_end_of_day: boolean;
+	arrived_from_previous_day?: boolean;
 	total_present_seconds: number;
 	working?: boolean;
 	work_started_at?: string | null;
@@ -69,11 +70,15 @@ export type StatusViewState = {
 	username: string;
 	/** 最終更新時刻の表示（未取得時は空文字） */
 	lastUpdatedLabel: string;
+	/** 作業アイドル終了までの分数（設定値） */
+	workIdleTimeoutMinutes: number;
 	self: {
 		present: boolean;
 		durationLabel: string;
 		working: boolean;
 		workDurationLabel: string;
+		/** 当日の入室時刻（HH:mm）。記録がなければ空文字 */
+		arrivedLabel: string;
 	} | null;
 	grades: Array<{
 		grade: string;

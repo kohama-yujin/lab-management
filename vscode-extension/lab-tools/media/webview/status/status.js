@@ -10,6 +10,7 @@
   const els = {
     banner: /** @type {HTMLElement} */ (document.getElementById('banner')),
     selfArea: /** @type {HTMLElement} */ (document.getElementById('self-area')),
+    selfArrived: /** @type {HTMLElement} */ (document.getElementById('self-arrived')),
     boards: /** @type {HTMLElement} */ (document.getElementById('boards')),
     lastUpdated: /** @type {HTMLElement} */ (document.getElementById('last-updated')),
     checkinSound: /** @type {HTMLAudioElement} */ (document.getElementById('checkin-sound')),
@@ -89,6 +90,14 @@
       els.banner.hidden = true;
     }
 
+    if (s.self?.arrivedLabel) {
+      els.selfArrived.hidden = false;
+      els.selfArrived.textContent = `入室 ${s.self.arrivedLabel}`;
+    } else {
+      els.selfArrived.hidden = true;
+      els.selfArrived.textContent = '';
+    }
+
     if (s.lastUpdatedLabel) {
       els.lastUpdated.hidden = false;
       els.lastUpdated.textContent = `最終更新 ${s.lastUpdatedLabel}`;
@@ -108,11 +117,15 @@
   function renderSelf(s) {
     if (s.viewError) {
       els.selfArea.innerHTML = '';
+      els.selfArrived.hidden = true;
+      els.selfArrived.textContent = '';
       return;
     }
 
     if (!s.self) {
       els.selfArea.innerHTML = '';
+      els.selfArrived.hidden = true;
+      els.selfArrived.textContent = '';
       return;
     }
 
@@ -122,6 +135,9 @@
     html += '</div>';
 
     if (s.self.present) {
+      if (s.self.working) {
+        html += `<p class="hint">${s.workIdleTimeoutMinutes}分間操作がないと作業が終了します</p>`;
+      }
       html += '<button type="button" class="btn" id="btn-checkout">退室</button>';
     } else {
       html += '<p class="hint">エディタを操作すると自動入室します</p>';

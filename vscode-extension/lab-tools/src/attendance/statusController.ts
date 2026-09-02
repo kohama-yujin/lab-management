@@ -7,7 +7,9 @@ import type { StatusPayload } from '../api/types';
 import { buildViewState, resolveViewError } from '../attendance/buildViewState';
 import { confirmCheckIn, confirmCheckOut } from '../attendance/dialogs';
 import { findMemberById } from '../attendance/findMember';
+import { WorkSessionController } from '../attendance/workSessionController';
 import type { SettingsStore } from '../config/settingsStore';
+import { ConfigKeys } from '../config/keys';
 import type { LabError } from '../errors/labError';
 import { displayMessage } from '../errors/labError';
 import { AttendanceStatusBar } from '../statusBar/attendanceStatusBar';
@@ -25,6 +27,7 @@ const MANUAL_CHECK_OUT_AUTO_CHECK_IN_SUPPRESS_MS = 60_000;
 export class StatusController implements vscode.Disposable {
 	readonly webviewProvider: StatusWebviewProvider;
 	readonly statusBar: AttendanceStatusBar;
+	readonly workSession: WorkSessionController;
 
 	private status: StatusPayload | null = null;
 	private memberId: number | null = null;
@@ -54,11 +57,21 @@ export class StatusController implements vscode.Disposable {
 				void this.webviewProvider.focus();
 			},
 		);
+		this.workSession = new WorkSessionController(
+			this.store,
+			() => ({
+				status: this.status,
+				memberId: this.memberId,
+				lastBaseUrl: this.lastBaseUrl,
+			}),
+			(options) => this.reload(options),
+		);
 		this.autoReloadTimer = setInterval(() => {
 			void this.reload({ silent: true });
 		}, AUTO_RELOAD_INTERVAL_MS);
 
 		this.disposables.push(
+			this.workSession,
 			vscode.window.onDidChangeWindowState((state) => {
 				if (state.focused) {
 					this.scheduleAutoCheckIn();
@@ -128,6 +141,7 @@ export class StatusController implements vscode.Disposable {
 			this.viewError = result.error;
 		}
 		await this.pushUi();
+		this.workSession.notifyStatusUpdated();
 	}
 
 	/**
@@ -138,11 +152,6 @@ export class StatusController implements vscode.Disposable {
 			return;
 		}
 		if (Date.now() - this.lastManualCheckOutAt < MANUAL_CHECK_OUT_AUTO_CHECK_IN_SUPPRESS_MS) {
-			return;
-		}
-
-		const settings = await this.store.get();
-		if (!settings.autoCheckIn) {
 			return;
 		}
 		if (!(await this.store.isConfigured())) {
@@ -171,6 +180,7 @@ export class StatusController implements vscode.Disposable {
 				this.lastBaseUrl = result.baseUrl;
 			}
 			await this.reload({ silent: true });
+			await this.workSession.onActivityAfterCheckIn();
 		} finally {
 			this.autoCheckInInFlight = false;
 		}
@@ -255,6 +265,7 @@ export class StatusController implements vscode.Disposable {
 		await this.postAttendance(() =>
 			startAttendance(this.store, { preferredBaseUrl: this.lastBaseUrl ?? undefined }),
 		);
+		await this.workSession.onActivityAfterCheckIn();
 	}
 
 	private async handleCheckOut(): Promise<void> {
@@ -268,6 +279,7 @@ export class StatusController implements vscode.Disposable {
 			clearTimeout(this.autoCheckInTimer);
 			this.autoCheckInTimer = null;
 		}
+		this.workSession.prepareForCheckout();
 		await this.postAttendance(() =>
 			endAttendance(this.store, { preferredBaseUrl: this.lastBaseUrl ?? undefined }),
 		);
@@ -295,7 +307,7 @@ export class StatusController implements vscode.Disposable {
 	}
 
 	private async onWebviewMessage(
-		msg: { type: 'ready' } | { type: 'checkIn' } | { type: 'checkOut' },
+		msg: { type: 'ready' } | { type: 'checkOut' },
 	): Promise<void> {
 		switch (msg.type) {
 			case 'ready':
@@ -303,9 +315,6 @@ export class StatusController implements vscode.Disposable {
 				if (!this.status && !this.viewError) {
 					await this.reload();
 				}
-				return;
-			case 'checkIn':
-				await this.handleCheckIn();
 				return;
 			case 'checkOut':
 				await this.handleCheckOut();
@@ -316,13 +325,15 @@ export class StatusController implements vscode.Disposable {
 	private async pushUi(): Promise<void> {
 		const settings = await this.store.get();
 		const effectiveError = resolveViewError(this.status, this.viewError, settings.username);
+		const workIdleTimeoutMinutes =
+			vscode.workspace.getConfiguration().get<number>(ConfigKeys.idleTimeoutMinutes) ?? 30;
 		const state = buildViewState(this.status, {
 			loading: this.loading,
 			viewError: effectiveError,
-			autoCheckIn: settings.autoCheckIn,
 			username: settings.username,
 			memberId: this.memberId,
 			lastUpdatedAt: this.lastUpdatedAt,
+			workIdleTimeoutMinutes,
 		});
 		this.statusBar.update(this.status, this.memberId, settings.username, effectiveError);
 		await this.webviewProvider.postState(state);

@@ -57,10 +57,11 @@
           "default": "",
           "description": "公開 URL（serverIp 失敗時のフォールバック）"
         },
-        "labTools.autoCheckIn": {
-          "type": "boolean",
-          "default": false,
-          "description": "不在時にエディタ操作で自動入室する"
+        "labTools.workTracking.idleTimeoutMinutes": {
+          "type": "number",
+          "default": 30,
+          "minimum": 1,
+          "description": "作業中の無操作で作業終了とみなすまでの分数（内部設定）"
         }
       }
     },
