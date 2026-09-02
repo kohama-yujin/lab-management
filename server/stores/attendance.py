@@ -22,7 +22,7 @@ def _authenticate(cur, username: str, password: str) -> int:
     """username / password を照合し、members.id を返す。"""
     normalized = (username or "").strip()
     if not normalized:
-        raise StoreError("ユーザー名は必須です", 400)
+        raise StoreError("ユーザーIDは必須です", 400)
     if not password:
         raise StoreError("パスワードは必須です", 400)
 

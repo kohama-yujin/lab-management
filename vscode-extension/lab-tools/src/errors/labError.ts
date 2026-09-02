@@ -28,11 +28,11 @@ export type LabErrorView = {
 
 const USER_MESSAGES: Record<LabErrorCode, string> = {
 	CONFIG_SERVER: 'サーバー IP または公開 URL を設定してください',
-	CONFIG_USERNAME: 'ユーザー名を設定してください',
+	CONFIG_USERNAME: 'ユーザーIDを設定してください',
 	CONFIG_PASSWORD: 'パスワードを設定してください',
 	CONFIG_API_KEY: 'APIキーを設定してください',
 	NETWORK: 'サーバーに接続できません',
-	AUTH_FAILED: 'ユーザー名またはパスワードが正しくありません',
+	AUTH_FAILED: 'ユーザーIDまたはパスワードが正しくありません',
 	GRADUATED: '卒業済みのため入退室できません',
 	SERVER_ERROR: 'サーバーでエラーが発生しました',
 	SAVE_FAILED: '設定の保存に失敗しました',
@@ -104,18 +104,18 @@ export function mapServerMessage(message: string): LabError {
 		return LabErrors.configApiKeyInvalid();
 	}
 	if (
-		trimmed.includes('ユーザー名またはパスワード') ||
+		trimmed.includes('ユーザーIDまたはパスワード') ||
 		trimmed.includes('パスワードが正しくありません') ||
 		trimmed.includes('ユーザーが見つかりません') ||
-		(trimmed.includes('ユーザー名は') && trimmed.includes('文字')) ||
+		(trimmed.includes('ユーザーIDは') && trimmed.includes('文字')) ||
 		(trimmed.includes('パスワードは') && trimmed.includes('文字')) ||
 		trimmed.includes('パスワードが間違')
 	) {
 		return LabErrors.authFailed();
 	}
 	if (
-		trimmed.includes('ユーザー名は必須') ||
-		trimmed.includes('ユーザー名を設定') ||
+		trimmed.includes('ユーザーIDは必須') ||
+		trimmed.includes('ユーザーIDを設定') ||
 		trimmed.includes('username と password は必須')
 	) {
 		return LabErrors.configUsername();

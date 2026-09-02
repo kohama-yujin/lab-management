@@ -24,16 +24,16 @@ const MemberValidation = {
   validateUsername(username) {
     const value = (username || "").trim();
     if (!value) {
-      return "ユーザー名を入力してください";
+      return "ユーザーIDを入力してください";
     }
     if (value.length < this.USERNAME_MIN_LEN) {
-      return `ユーザー名は ${this.USERNAME_MIN_LEN} 文字以上にしてください`;
+      return `ユーザーIDは ${this.USERNAME_MIN_LEN} 文字以上にしてください`;
     }
     if (value.length > this.USERNAME_MAX_LEN) {
-      return `ユーザー名は ${this.USERNAME_MAX_LEN} 文字以内にしてください`;
+      return `ユーザーIDは ${this.USERNAME_MAX_LEN} 文字以内にしてください`;
     }
     if (!this.USERNAME_PATTERN.test(value)) {
-      return "ユーザー名は英数字とアンダースコア（_）のみ使用できます";
+      return "ユーザーIDは英数字とアンダースコア（_）のみ使用できます";
     }
     return null;
   },

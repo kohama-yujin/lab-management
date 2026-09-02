@@ -172,7 +172,7 @@ def _normalize_graduation_year(value: int | None) -> int | None:
 def fetch_member_by_credentials(username: str, password: str) -> MemberItem:
     """認証情報からメンバーを取得する。"""
     if not username:
-        raise StoreError("ユーザー名は必須です", 400)
+        raise StoreError("ユーザーIDは必須です", 400)
     if not password:
         raise StoreError("パスワードは必須です", 400)
     normalized = _normalize_username(username)
@@ -185,11 +185,11 @@ def fetch_member_by_credentials(username: str, password: str) -> MemberItem:
             )
             row = cur.fetchone()
             if not row or not verify_password(password, str(row[1])):
-                raise StoreError("ユーザー名またはパスワードが間違っています", 401)
+                raise StoreError("ユーザーIDまたはパスワードが間違っています", 401)
 
             member = _fetch_member(cur, int(row[0]))
             if member is None:
-                raise StoreError("ユーザー名またはパスワードが間違っています", 401)
+                raise StoreError("ユーザーIDまたはパスワードが間違っています", 401)
             return member
 
 
@@ -316,7 +316,7 @@ def create_member(
         raise
     except Exception as exc:
         if is_unique_violation(exc):
-            raise StoreError("このユーザー名は既に使われています", 409) from exc
+            raise StoreError("このユーザーIDは既に使われています", 409) from exc
         logger.exception("メンバー登録に失敗しました")
         raise StoreError("メンバーの登録に失敗しました", 500) from exc
 
@@ -421,6 +421,6 @@ def update_member(
         raise
     except Exception as exc:
         if is_unique_violation(exc):
-            raise StoreError("このユーザー名は既に使われています", 409) from exc
+            raise StoreError("このユーザーIDは既に使われています", 409) from exc
         logger.exception("メンバー更新に失敗しました")
         raise StoreError("メンバーの更新に失敗しました", 500) from exc
