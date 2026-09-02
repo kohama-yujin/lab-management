@@ -473,9 +473,3 @@
   font-weight: 700;
   vertical-align: middle;
 }
-
-@media (max-width: 720px) {
-  .detail-kpis {
-    grid-template-columns: 1fr;
-  }
-}
