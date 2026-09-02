@@ -84,6 +84,8 @@ export class StatusController implements vscode.Disposable {
 				this.scheduleAutoCheckIn();
 			}),
 		);
+
+		void this.reload();
 	}
 
 	/**
