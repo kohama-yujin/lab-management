@@ -35,10 +35,12 @@ CREATE TABLE members (
     role_id         SMALLINT        NOT NULL,
     grade_id        SMALLINT        NOT NULL,
     graduation_year SMALLINT,       -- NULL = 在学中。卒業年度（西暦）を入れる
+    slack_user_id   VARCHAR(64),    -- Slack OpenID sub（ユーザー ID）
     created_at      TIMESTAMPTZ     NOT NULL DEFAULT now(),
     updated_at      TIMESTAMPTZ     NOT NULL DEFAULT now(),
 
     CONSTRAINT members_username_unique UNIQUE (username),
+    CONSTRAINT members_slack_user_id_unique UNIQUE (slack_user_id),
     CONSTRAINT members_graduation_year_check CHECK (
         graduation_year IS NULL OR graduation_year BETWEEN 2000 AND 2100
     ),

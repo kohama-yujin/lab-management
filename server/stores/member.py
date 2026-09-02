@@ -192,6 +192,32 @@ def fetch_member_by_credentials(username: str, password: str) -> MemberItem:
                 raise StoreError("ユーザー名またはパスワードが間違っています", 401)
             return member
 
+
+def fetch_member_by_id(member_id: int) -> MemberItem | None:
+    """ID からメンバーを取得する。"""
+    with connect() as conn:
+        with conn.cursor() as cur:
+            return _fetch_member(cur, member_id)
+
+
+def fetch_member_by_slack_user_id(slack_user_id: str) -> MemberItem | None:
+    """Slack ユーザー ID からメンバーを取得する。"""
+    normalized = (slack_user_id or "").strip()
+    if not normalized:
+        return None
+
+    with connect() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                f"{_MEMBER_SELECT} WHERE m.slack_user_id = %s",
+                (normalized,),
+            )
+            row = cur.fetchone()
+            if not row:
+                return None
+            return _row_to_member(row)
+
+
 def list_active_members() -> list[MemberItem]:
     """在学中メンバー一覧を返す。"""
     with connect() as conn:

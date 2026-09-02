@@ -32,15 +32,6 @@ def _load_dotenv_file() -> None:
 _load_dotenv_file()
 
 
-def load_database_url() -> str | None:
-    """
-    PostgreSQL 接続 URL を返す。
-    優先順: プロセス環境変数 DATABASE_URL → .env の DATABASE_URL。
-    """
-    url = os.environ.get("DATABASE_URL", "").strip()
-    return url or None
-
-
 def load_public_tunnel_url() -> str | None:
     """
     Quick Tunnel の公開 URL を data/tunnel_url.txt から読む。
@@ -80,3 +71,38 @@ def load_api_key() -> str | None:
         return None
     key = key.strip()
     return key or None
+
+
+def load_database_url() -> str | None:
+    """
+    PostgreSQL 接続 URL を返す。
+    優先順: プロセス環境変数 DATABASE_URL → .env の DATABASE_URL。
+    """
+    url = os.environ.get("DATABASE_URL", "").strip()
+    return url or None
+
+
+def load_session_secret() -> str:
+    """セッション署名用シークレットを返す。未設定時は開発用の固定値。"""
+    secret = os.environ.get("SESSION_SECRET", "").strip()
+    return secret or None
+
+
+def load_slack_client_id() -> str | None:
+    """Slack OAuth クライアント ID。"""
+    value = os.environ.get("SLACK_CLIENT_ID", "").strip()
+    return value or None
+
+
+def load_slack_client_secret() -> str | None:
+    """Slack OAuth クライアントシークレット。"""
+    value = os.environ.get("SLACK_CLIENT_SECRET", "").strip()
+    return value or None
+
+
+def load_slack_redirect_uri() -> str:
+    """Slack OAuth コールバック URL。"""
+    value = os.environ.get("SLACK_REDIRECT_URI", "").strip()
+    if value:
+        return value
+    return "http://localhost:5000/auth/slack/callback"
