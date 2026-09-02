@@ -54,12 +54,16 @@
   /**
    * @param {boolean} present
    * @param {string} durationLabel
+   * @param {boolean} [showStatusLabel=true] ボードのチップでは false（ドットと時間のみ）
    * @returns {string}
    */
-  function renderChip(present, durationLabel) {
+  function renderChip(present, durationLabel, showStatusLabel = true) {
     const kind = present ? 'present' : 'away';
     const label = present ? '在室' : '不在';
-    return `<span class="chip ${kind}"><span class="dot"></span>${label}<span class="sep">·</span><span class="time">${durationLabel}</span></span>`;
+    const statusPart = showStatusLabel
+      ? `${label}<span class="sep">·</span>`
+      : '';
+    return `<span class="chip ${kind}"><span class="dot"></span>${statusPart}<span class="time">${durationLabel}</span></span>`;
   }
 
   /**
@@ -171,7 +175,7 @@
                 <div class="member-name">${escapeHtml(m.name)}</div>
                 <div class="member-time">${escapeHtml(m.timeRange)}</div>
               </div>
-              ${renderChip(m.present, m.durationLabel)}
+              ${renderChip(m.present, m.durationLabel, false)}
             </div>`,
           )
           .join('');
