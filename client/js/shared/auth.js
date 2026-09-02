@@ -13,7 +13,48 @@ const AuthBar = {
   },
 
   _wired: false,
+  /** @type {{ id: number, name: string, grade: string, role: string, graduation_year: number | null } | null} */
   _member: null,
+
+  /**
+   * ログイン中メンバーを返す。未ログインなら null。
+   * @returns {{ id: number, name: string, grade: string, role: string, graduation_year: number | null } | null}
+   */
+  getMember() {
+    return this._member;
+  },
+
+  /**
+   * ログイン済みなら true。
+   * @returns {boolean}
+   */
+  isLoggedIn() {
+    return this._member != null;
+  },
+
+  /**
+   * 管理者なら true。
+   * @returns {boolean}
+   */
+  isAdmin() {
+    return this._member?.role === "admin";
+  },
+
+  /**
+   * 指定メンバーを編集できる見た目にするか。
+   * 管理者は全員、一般は自分のみ、未ログインは不可。
+   * @param {number} memberId
+   * @returns {boolean}
+   */
+  canEditMember(memberId) {
+    if (!this._member) {
+      return false;
+    }
+    if (this._member.role === "admin") {
+      return true;
+    }
+    return this._member.id === memberId;
+  },
 
   async init() {
     const bar = document.getElementById("auth-bar");
@@ -103,8 +144,10 @@ const AuthBar = {
       if (data.logged_in) {
         const graduated = data.graduation_year != null;
         this._member = {
+          id: Number(data.id),
           name: data.name,
           grade: data.grade,
+          role: data.role || "member",
           graduation_year: data.graduation_year ?? null,
         };
         loginBtn.hidden = true;

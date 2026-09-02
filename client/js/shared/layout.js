@@ -35,7 +35,6 @@ const SiteLayout = {
     }
 
     this._markActiveNav(page);
-    this._appendMembersRegister(page, navMount);
 
     if (typeof AuthBar !== "undefined") {
       await AuthBar.init();
@@ -56,26 +55,5 @@ const SiteLayout = {
         link.removeAttribute("aria-current");
       }
     });
-  },
-
-  /**
-   * メンバー画面だけナビ末尾に登録ボタンを追加する。
-   * @param {string} page
-   * @param {HTMLElement} navMount
-   */
-  _appendMembersRegister(page, navMount) {
-    if (page !== "members") {
-      return;
-    }
-    const nav = navMount.querySelector(".nav-actions");
-    if (!nav || document.getElementById("open-register")) {
-      return;
-    }
-    const button = document.createElement("button");
-    button.type = "button";
-    button.id = "open-register";
-    button.className = "nav-btn nav-btn-primary";
-    button.textContent = "登録";
-    nav.appendChild(button);
   },
 };
