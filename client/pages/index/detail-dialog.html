@@ -1,0 +1,74 @@
+<dialog id="detail-dialog" class="detail-dialog" aria-labelledby="detail-title">
+  <div class="detail-panel">
+    <header class="detail-head">
+      <div>
+        <h2 id="detail-title" class="detail-title"></h2>
+        <p id="detail-meta" class="detail-meta"></p>
+      </div>
+      <button type="button" id="detail-close" class="detail-close" aria-label="閉じる">
+        ×
+      </button>
+    </header>
+    <div class="detail-body">
+      <div id="detail-notes" class="detail-notes" hidden></div>
+      <div class="detail-kpis">
+        <div class="detail-kpi present">
+          <span class="label">総在室</span>
+          <span id="detail-total" class="value">—</span>
+        </div>
+        <div class="detail-kpi work-kpi">
+          <span class="label">総作業</span>
+          <span id="detail-work-total" class="value">—</span>
+        </div>
+      </div>
+      <div class="detail-chart" aria-hidden="true">
+        <div id="detail-endpoints" class="detail-endpoints"></div>
+        <div id="detail-bar" class="detail-bar attendance"></div>
+        <div id="detail-work-bar" class="detail-bar work"></div>
+        <div id="detail-axis-bottom" class="detail-axis-bottom"></div>
+      </div>
+      <div class="detail-session-tables">
+        <section class="detail-session-section detail-session-section--work" aria-label="作業セッション">
+          <p class="detail-session-label">作業セッション</p>
+          <div class="detail-table-wrap">
+            <table class="detail-table detail-table--work">
+              <thead>
+                <tr>
+                  <th></th>
+                  <th>開始</th>
+                  <th>終了</th>
+                  <th>作業</th>
+                </tr>
+              </thead>
+              <tbody id="detail-work-tbody"></tbody>
+            </table>
+          </div>
+        </section>
+        <!-- <button type="button" id="detail-toggle-attendance" class="detail-session-toggle">
+          在室セッションを表示
+        </button> -->
+        <section
+          id="detail-attendance-section"
+          class="detail-session-section detail-session-section--attendance"
+          aria-label="在室セッション"
+          hidden
+        >
+          <p class="detail-session-label">在室セッション</p>
+          <div class="detail-table-wrap">
+            <table class="detail-table detail-table--attendance">
+              <thead>
+                <tr>
+                  <th></th>
+                  <th>入室</th>
+                  <th>退室</th>
+                  <th>在室</th>
+                </tr>
+              </thead>
+              <tbody id="detail-attendance-tbody"></tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+</dialog>
