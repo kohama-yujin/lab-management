@@ -11,7 +11,7 @@ const els = {
   clockDate: document.getElementById("clock-date"),
   clockTime: document.getElementById("clock-time"),
   boards: document.getElementById("boards"),
-  openRegister: document.getElementById("open-register"),
+  openRegister: null,
   dialogRoot: document.getElementById("member-dialogs"),
 };
 
@@ -37,16 +37,6 @@ async function fetchActiveMembers() {
   const data = await res.json();
   members = Array.isArray(data.members) ? data.members : [];
 }
-
-async function reloadAllMembers() {
-  await fetchActiveMembers();
-  await fetchGraduatedMembers();
-  renderBoards();
-}
-
-window.MemberPage = {
-  reload: reloadAllMembers,
-};
 
 function isActive(member) {
   return member.graduation_year == null;
@@ -267,14 +257,18 @@ async function loadDialogPartials() {
   els.dialogRoot.innerHTML = html;
 }
 
-els.openRegister.addEventListener("click", () => {
-  RegisterDialog.open();
-});
-
 async function boot() {
-  DisplayUtils.startClock(els.clockDate, els.clockTime);
-
   try {
+    await SiteLayout.mount();
+    els.openRegister = document.getElementById("open-register");
+    if (els.openRegister) {
+      els.openRegister.addEventListener("click", () => {
+        RegisterDialog.open();
+      });
+    }
+
+    DisplayUtils.startClock(els.clockDate, els.clockTime);
+
     await loadDialogPartials();
     RegisterDialog.init();
     EditDialog.init();

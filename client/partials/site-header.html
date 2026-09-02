@@ -1,0 +1,24 @@
+<header class="site-header">
+  <h1 class="title" id="site-title"></h1>
+  <div id="auth-bar" class="auth-bar">
+    <a id="auth-login-btn" class="nav-btn nav-btn-slack" href="/auth/slack">Slackでログイン</a>
+    <div id="auth-session" class="auth-session" hidden>
+      <button
+        type="button"
+        id="auth-user-info"
+        class="auth-user-btn"
+        aria-expanded="false"
+        aria-haspopup="true"
+        aria-controls="auth-menu"
+      >
+        <span id="auth-user-label" class="auth-user-label"></span>
+        <span class="auth-user-chevron" aria-hidden="true"></span>
+      </button>
+      <div id="auth-menu" class="auth-menu" hidden role="menu">
+        <button type="button" id="auth-logout-btn" class="auth-logout-btn" role="menuitem">
+          ログアウト
+        </button>
+      </div>
+    </div>
+  </div>
+</header>

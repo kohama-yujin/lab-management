@@ -1,0 +1,281 @@
+.site-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1.5rem;
+  padding: clamp(1.25rem, 3vw, 2rem) clamp(1.25rem, 4vw, 2.5rem) 0.35rem;
+}
+
+.sub-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1.5rem;
+  padding: 0 clamp(1.25rem, 4vw, 2.5rem) 0.25rem;
+}
+
+.sub-header-left {
+  min-width: 0;
+}
+
+.sub-header-right {
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.title {
+  margin: 0;
+  font-family: "Noto Sans JP", sans-serif;
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1.15;
+}
+
+.subtitle {
+  margin: 0.35rem 0 0;
+  color: var(--muted);
+  font-size: 0.98rem;
+}
+
+.public-url {
+  margin: 0.4rem 0 0;
+  color: var(--muted);
+  font-size: 0.92rem;
+  word-break: break-all;
+}
+
+.public-url a {
+  color: var(--m2-ink);
+  text-underline-offset: 0.15em;
+}
+
+.date-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin: 0.15rem 0 0;
+}
+
+.date-nav-btn {
+  margin: 0;
+  padding: 0.15rem 0.55rem;
+  border: none;
+  background: transparent;
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 1.05rem;
+  line-height: 1.4;
+  cursor: pointer;
+}
+
+.date-nav-btn:hover:not(:disabled) {
+  background: transparent;
+  opacity: 0.65;
+}
+
+.date-nav-btn:disabled {
+  opacity: 0.28;
+  cursor: default;
+}
+
+.view-date {
+  margin: 0;
+  min-width: 11rem;
+  text-align: center;
+  font-size: 1.15rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+}
+
+.nav-links {
+  margin: 0.55rem 0 0;
+  font-size: 0.9rem;
+}
+
+.nav-links a {
+  color: var(--m2-ink);
+  text-underline-offset: 0.15em;
+}
+
+.nav-actions-mount {
+  padding: 0 clamp(1.25rem, 4vw, 2.5rem);
+}
+
+.nav-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.45rem 0 0;
+}
+
+.nav-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.4rem 0.85rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.55);
+  color: var(--m2-ink);
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.nav-btn:hover {
+  background: rgba(30, 75, 110, 0.1);
+}
+
+.nav-btn-active {
+  border-color: var(--m2-ink);
+}
+
+.nav-btn-primary {
+  background: var(--m2-ink);
+  border-color: var(--m2-ink);
+  color: #fff;
+}
+
+.nav-btn-primary:hover {
+  background: #163a56;
+  border-color: #163a56;
+}
+
+.auth-bar {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.auth-session {
+  position: relative;
+}
+
+.auth-user-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0.4rem 0.75rem;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--m2-ink);
+  font-family: inherit;
+  font-size: 0.92rem;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: filter 0.15s ease, box-shadow 0.15s ease;
+}
+
+.auth-user-btn:hover,
+.auth-user-btn.is-open {
+  filter: brightness(0.96);
+  box-shadow: inset 0 0 0 1px currentColor;
+}
+
+.auth-user-label {
+  max-width: 14rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.auth-user-chevron {
+  display: inline-block;
+  width: 0.45rem;
+  height: 0.45rem;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: translateY(-1px) rotate(45deg);
+  opacity: 0.7;
+  transition: transform 0.15s ease;
+}
+
+.auth-user-btn.is-open .auth-user-chevron {
+  transform: translateY(2px) rotate(225deg);
+}
+
+.auth-menu {
+  position: absolute;
+  top: calc(100% + 0.4rem);
+  right: 0;
+  z-index: 40;
+  min-width: 11.5rem;
+  padding: 0.65rem 0.7rem 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 10px 28px rgba(28, 36, 32, 0.14);
+}
+
+.auth-logout-btn {
+  width: 100%;
+  margin: 0;
+  padding: 0.45rem 0.65rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  border-color: var(--m2-ink);
+  background: rgba(255, 255, 255, 0.5);
+  color: var(--m2-ink);
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.auth-logout-btn:hover {
+  background: rgba(30, 75, 110, 0.1);
+}
+
+.nav-btn-slack {
+  background: #4a154b;
+  border-color: #4a154b;
+  color: #fff;
+}
+
+.nav-btn-slack:hover {
+  background: #611f69;
+  border-color: #611f69;
+}
+
+.rules {
+  margin: 0.35rem 0 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+  line-height: 1.45;
+  white-space: pre-line;
+}
+
+.clock-date {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.clock-time {
+  margin: 0.15rem 0 0;
+  font-family: "Shippori Mincho", serif;
+  font-size: clamp(1.4rem, 3vw, 2rem);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
+.history-empty {
+  margin: 1rem clamp(1.25rem, 4vw, 2.5rem);
+  color: var(--muted);
+  font-size: 1rem;
+}
+
+@media (max-width: 720px) {
+  .sub-header {
+    display: none;
+  }
+
+  .title {
+    font-size: clamp(1.5rem, 3vw, 2rem);
+  }
+}

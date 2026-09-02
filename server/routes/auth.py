@@ -69,6 +69,8 @@ def auth_me(request: Request) -> JSONResponse:
             "logged_in": True,
             "name": member["name"],
             "grade": member["grade"],
+            "role": member["role"],
+            "graduation_year": member["graduation_year"],
         }
     )
 

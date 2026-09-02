@@ -44,7 +44,7 @@ function setPublicUrl(status) {
 }
 
 function formatRules(_status) {
-  return "";
+  return "ログインは、サーバーと同じネットワークに接続している端末からのみ可能です。";
 }
 
 function presenceView(t) {
@@ -152,8 +152,9 @@ async function watch() {
 }
 
 async function boot() {
-  DisplayUtils.startClock(els.clockDate, els.clockTime);
   try {
+    await SiteLayout.mount();
+    DisplayUtils.startClock(els.clockDate, els.clockTime);
     await DetailDialog.loadPartial(els.dialogRoot);
     DetailDialog.init();
     DetailDialog.wireBoard(els.boards, (memberId) => {
