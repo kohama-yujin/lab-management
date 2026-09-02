@@ -65,7 +65,7 @@ async def require_api_key(
     expected = load_api_key()
     if not expected:
         raise ApiError(
-            "api_key.json が未設定です（api_key.example.json をコピーして設定）",
+            "API_KEY が未設定です（.env または環境変数で設定）",
             503,
         )
 

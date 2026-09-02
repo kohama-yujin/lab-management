@@ -1,11 +1,9 @@
-import json
 import logging
 import os
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 ENV_FILE = ROOT / ".env"
-API_KEY_FILE = ROOT / "api_key.json"
 # cloudflared Quick Tunnel の公開 URL（起動スクリプトが書き込む）
 TUNNEL_URL_FILE = ROOT / "data" / "tunnel_url.txt"
 
@@ -52,27 +50,6 @@ def load_public_tunnel_url() -> str | None:
     return url
 
 
-def load_api_key() -> str | None:
-    """
-    共有 API キーを api_key.json から読み込む。
-    未設定・空なら None。
-    """
-    if not API_KEY_FILE.exists():
-        return None
-    try:
-        with API_KEY_FILE.open(encoding="utf-8") as f:
-            raw = json.load(f)
-    except (OSError, json.JSONDecodeError):
-        return None
-    if not isinstance(raw, dict):
-        return None
-    key = raw.get("api_key")
-    if not isinstance(key, str):
-        return None
-    key = key.strip()
-    return key or None
-
-
 def load_database_url() -> str | None:
     """
     PostgreSQL 接続 URL を返す。
@@ -80,6 +57,15 @@ def load_database_url() -> str | None:
     """
     url = os.environ.get("DATABASE_URL", "").strip()
     return url or None
+
+
+def load_api_key() -> str | None:
+    """
+    共有 API キーを返す。
+    優先順: プロセス環境変数 API_KEY → .env の API_KEY。
+    """
+    key = os.environ.get("API_KEY", "").strip()
+    return key or None
 
 
 def load_session_secret() -> str:
