@@ -123,8 +123,6 @@
 
     if (s.self.present) {
       html += '<button type="button" class="btn" id="btn-checkout">退室</button>';
-    } else if (!s.autoCheckIn) {
-      html += '<button type="button" class="btn" id="btn-checkin">入室</button>';
     } else {
       html += '<p class="hint">エディタを操作すると自動入室します</p>';
       html += '<p class="hint">手動退室後は 1分後から有効です</p>';
@@ -132,9 +130,7 @@
 
     els.selfArea.innerHTML = html;
 
-    const checkIn = document.getElementById('btn-checkin');
     const checkOut = document.getElementById('btn-checkout');
-    checkIn?.addEventListener('click', () => vscode.postMessage({ type: 'checkIn' }));
     checkOut?.addEventListener('click', () => vscode.postMessage({ type: 'checkOut' }));
   }
 

@@ -33,7 +33,6 @@
       username: /** @type {HTMLInputElement} */ (el('username')).value,
       serverIp: /** @type {HTMLInputElement} */ (el('serverIp')).value,
       publicUrl: /** @type {HTMLInputElement} */ (el('publicUrl')).value,
-      autoCheckIn: /** @type {HTMLInputElement} */ (el('autoCheckIn')).checked,
       password: /** @type {HTMLInputElement} */ (el('password')).value,
       apiKey: /** @type {HTMLInputElement} */ (el('apiKey')).value,
     };
@@ -46,7 +45,6 @@
       /** @type {HTMLInputElement} */ (el('username')).value = s.username || '';
       /** @type {HTMLInputElement} */ (el('serverIp')).value = s.serverIp || '';
       /** @type {HTMLInputElement} */ (el('publicUrl')).value = s.publicUrl || '';
-      /** @type {HTMLInputElement} */ (el('autoCheckIn')).checked = Boolean(s.autoCheckIn);
       const password = /** @type {HTMLInputElement} */ (el('password'));
       const apiKey = /** @type {HTMLInputElement} */ (el('apiKey'));
       password.value = '';

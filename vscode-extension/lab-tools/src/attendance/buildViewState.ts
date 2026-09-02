@@ -12,7 +12,6 @@ export function buildViewState(
 	options: {
 		loading: boolean;
 		viewError: LabError | null;
-		autoCheckIn: boolean;
 		username: string;
 		memberId: number | null;
 		lastUpdatedAt: Date | null;
@@ -24,7 +23,6 @@ export function buildViewState(
 		return {
 			loading: options.loading,
 			viewError: toViewError(options.viewError),
-			autoCheckIn: options.autoCheckIn,
 			username: options.username,
 			lastUpdatedLabel,
 			self: null,
@@ -58,7 +56,6 @@ export function buildViewState(
 	return {
 		loading: options.loading,
 		viewError: toViewError(options.viewError),
-		autoCheckIn: options.autoCheckIn,
 		username: options.username,
 		lastUpdatedLabel,
 		self,
@@ -82,4 +79,3 @@ export function resolveViewError(
 	}
 	return null;
 }
-

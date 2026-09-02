@@ -8,7 +8,6 @@ export type LabSettings = {
 	username: string;
 	serverIp: string;
 	publicUrl: string;
-	autoCheckIn: boolean;
 	/** シークレットが保存済みなら true（値自体は返さない） */
 	hasPassword: boolean;
 	hasApiKey: boolean;
@@ -21,7 +20,6 @@ export type LabSettingsUpdate = {
 	username: string;
 	serverIp: string;
 	publicUrl: string;
-	autoCheckIn: boolean;
 	password: string;
 	apiKey: string;
 };
@@ -43,7 +41,6 @@ export class SettingsStore {
 			username: (cfg.get<string>(ConfigKeys.username) ?? '').trim(),
 			serverIp: (cfg.get<string>(ConfigKeys.serverIp) ?? '').trim(),
 			publicUrl: (cfg.get<string>(ConfigKeys.publicUrl) ?? '').trim(),
-			autoCheckIn: cfg.get<boolean>(ConfigKeys.autoCheckIn) ?? true,
 			hasPassword: Boolean(password),
 			hasApiKey: Boolean(apiKey),
 		};
@@ -69,19 +66,16 @@ export class SettingsStore {
 		const username = update.username.trim();
 		const serverIp = update.serverIp.trim();
 		const publicUrl = update.publicUrl.trim();
-		const autoCheckIn = update.autoCheckIn;
 		const changed =
 			current.username !== username ||
 			current.serverIp !== serverIp ||
 			current.publicUrl !== publicUrl ||
-			current.autoCheckIn !== autoCheckIn ||
 			update.password !== '' ||
 			update.apiKey !== '';
 
 		await cfg.update(ConfigKeys.username, username, vscode.ConfigurationTarget.Global);
 		await cfg.update(ConfigKeys.serverIp, serverIp, vscode.ConfigurationTarget.Global);
 		await cfg.update(ConfigKeys.publicUrl, publicUrl, vscode.ConfigurationTarget.Global);
-		await cfg.update(ConfigKeys.autoCheckIn, autoCheckIn, vscode.ConfigurationTarget.Global);
 
 		if (update.password !== '') {
 			await this.secrets.store(SecretKeys.password, update.password);

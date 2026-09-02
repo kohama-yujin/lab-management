@@ -5,7 +5,6 @@ import { renderWebviewHtml } from '../webview/renderHtml';
 
 type WebviewToExt =
 	| { type: 'ready' }
-	| { type: 'checkIn' }
 	| { type: 'checkOut' };
 
 type MessageHandler = (msg: WebviewToExt) => void | Promise<void>;
