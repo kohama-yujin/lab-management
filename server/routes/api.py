@@ -20,12 +20,14 @@ from server.stores.member import (
     create_member,
     fetch_member_by_credentials,
     fetch_member_by_id,
+    fetch_slack_user_id_by_member_id,
     list_active_members,
     list_graduated_members,
     update_member,
 )
 from server.stores.role import get_roles
 from server.stores.status import get_today_status
+from server.slack_notify import notify_collaborator_guidance
 
 api_router = APIRouter()
 
@@ -219,6 +221,7 @@ async def members_update(member_id: int, request: Request) -> dict[str, Any]:
 
     # 一般は役職を変えさせない。管理者のみ body の role を採用する。
     role = str(body.get("role") or "") if is_admin else target["role"]
+    old_role = target["role"]
 
     # slack_user_id は body にあっても update_member に渡さない
     member = update_member(
@@ -230,6 +233,17 @@ async def members_update(member_id: int, request: Request) -> dict[str, Any]:
         password=str(password) if password else None,
         graduation_year=graduation_year,
     )
+
+    # 一般↔管理者のときだけ、変更者へ Collaborator 案内 DM（失敗しても更新は成功のまま）
+    if old_role != member["role"]:
+        notify_collaborator_guidance(
+            actor_slack_user_id=fetch_slack_user_id_by_member_id(int(actor["id"])),
+            target_slack_user_id=fetch_slack_user_id_by_member_id(int(member["id"])),
+            target_name=str(member["name"]),
+            old_role=str(old_role),
+            new_role=str(member["role"]),
+        )
+
     return {"ok": True, "member": member}
 
 

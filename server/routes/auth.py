@@ -1,6 +1,6 @@
 """
 Slack OpenID Connect による Web ログイン。
-docs/slack-sign-in-with-slack.md を参照。
+docs/slack-app-setup.md を参照。
 """
 
 from __future__ import annotations

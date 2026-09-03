@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import logging
+import secrets
 import sys
 from pathlib import Path
 
@@ -28,10 +29,15 @@ def _configure_logging(verbose: bool) -> None:
     logging.basicConfig(level=level, format="%(levelname)s: %(message)s")
 
 
-def _import_config():
-    """server.config を読み込み .env を適用する。"""
+def _ensure_root_on_path() -> None:
+    """リポジトリルートを sys.path に入れる。"""
     if str(ROOT) not in sys.path:
         sys.path.insert(0, str(ROOT))
+
+
+def _import_config():
+    """server.config を読み込み .env を適用する。"""
+    _ensure_root_on_path()
     from server.config import load_database_url
 
     return load_database_url
@@ -118,9 +124,92 @@ def apply_schema(conn: psycopg.Connection, *, force: bool = False) -> None:
 
 
 def apply_seed(conn: psycopg.Connection) -> None:
-    """seed.sql を適用する（ON CONFLICT により再実行可能）。"""
+    """seed.sql と .env 由来の管理者を適用する（再実行可能）。"""
     logger.info("seed.sql を適用します: %s", SEED_FILE)
     _execute_sql_file(conn, SEED_FILE)
+    seed_admin_from_env(conn)
+
+
+def seed_admin_from_env(conn: psycopg.Connection) -> None:
+    """
+    .env の ADMIN_SLACK_USER_ID から管理者メンバーを投入する。
+    """
+    _ensure_root_on_path()
+    from server.config import load_admin_slack_user_id
+    from server.password_utils import hash_password
+
+    slack_user_id = load_admin_slack_user_id()
+    if not slack_user_id:
+        raise SystemExit(
+            "ADMIN_SLACK_USER_ID が未設定です。\n"
+            "  init / reset の前に .env へ設定してください。"
+        )
+
+    with conn.cursor() as cur:
+        cur.execute("SELECT id FROM roles WHERE code = %s", ("admin",))
+        role_row = cur.fetchone()
+        if not role_row:
+            raise RuntimeError("roles に admin がありません（seed.sql を先に適用してください）")
+
+        cur.execute("SELECT id FROM grades WHERE code = %s", ("Teacher",))
+        grade_row = cur.fetchone()
+        if not grade_row:
+            raise RuntimeError("grades に Teacher がありません（seed.sql を先に適用してください）")
+
+        cur.execute(
+            "SELECT id FROM members WHERE slack_user_id = %s",
+            (slack_user_id,),
+        )
+        if cur.fetchone():
+            logger.info("管理者（Slack ID）は既に存在するためスキップします")
+            return
+
+        role_id = int(role_row[0])
+        grade_id = int(grade_row[0])
+        # ログインは Slack 前提。拡張用パスワードは Web から後で設定する。
+        password_hash = hash_password("password")
+
+        cur.execute(
+            """
+            INSERT INTO members (
+                username, password_hash, name, role_id, grade_id,
+                graduation_year, slack_user_id
+            )
+            VALUES (%s, %s, %s, %s, %s, NULL, %s)
+            RETURNING id
+            """,
+            ("admin", password_hash, "管理者", role_id, grade_id, slack_user_id),
+        )
+        inserted = cur.fetchone()
+        if not inserted:
+            raise RuntimeError("管理者メンバーの投入に失敗しました")
+
+        member_id = int(inserted[0])
+        cur.execute(
+            """
+            INSERT INTO member_grade_changes (member_id, grade_id_from, grade_id_to)
+            VALUES (%s, NULL, %s)
+            """,
+            (member_id, grade_id),
+        )
+        cur.execute(
+            """
+            INSERT INTO member_role_changes (member_id, role_id_from, role_id_to)
+            VALUES (%s, NULL, %s)
+            """,
+            (member_id, role_id),
+        )
+        cur.execute(
+            """
+            INSERT INTO member_graduation_changes (
+                member_id, graduation_year_from, graduation_year_to
+            )
+            VALUES (%s, NULL, NULL)
+            """,
+            (member_id,),
+        )
+
+    logger.info("管理者メンバーを投入しました（username=admin, slack_user_id=%s）", slack_user_id)
 
 
 def reset_schema(conn: psycopg.Connection) -> None:
@@ -171,8 +260,24 @@ def _require_database_url() -> str:
     return database_url
 
 
+def _require_admin_slack_user_id() -> str:
+    """init / reset 用。ADMIN_SLACK_USER_ID が無ければ中止する。"""
+    _ensure_root_on_path()
+    from server.config import load_admin_slack_user_id
+
+    slack_user_id = load_admin_slack_user_id()
+    if not slack_user_id:
+        raise SystemExit(
+            "ADMIN_SLACK_USER_ID が未設定です。\n"
+            "  .env に管理者の Slack メンバー ID（例: U012ABCDEF）を設定してください。\n"
+            "詳細: docs/slack-app-setup.md"
+        )
+    return slack_user_id
+
+
 def cmd_init(args: argparse.Namespace) -> int:
     database_url = _require_database_url()
+    _require_admin_slack_user_id()
     ensure_database(database_url)
     params, _ = _split_conninfo(database_url)
 
@@ -189,6 +294,7 @@ def cmd_init(args: argparse.Namespace) -> int:
 
 def cmd_reset(args: argparse.Namespace) -> int:
     database_url = _require_database_url()
+    _require_admin_slack_user_id()
     params, dbname = _split_conninfo(database_url)
 
     if not args.yes:

@@ -122,6 +122,7 @@ Copy-Item .env.example .env
 - `DATABASE_URL` の **データベースが無ければ CREATE DATABASE**
 - `db/schema.sql` でテーブル作成（既にあればスキップ）
 - `db/seed.sql` で学年・役職マスタ投入（再実行可）
+- `.env` の `ADMIN_SLACK_USER_ID`（必須）から管理者メンバーを投入（初期パスワードは`password`）
 
 ### 4.3 状態確認
 
@@ -147,7 +148,8 @@ database: lab_management_dev
 .\scripts\db-reset.ps1 -Yes
 ```
 
-`public` スキーマを DROP して作り直し、`schema.sql` / `seed.sql` を再適用します。
+- `public` スキーマを DROP して作り直し、`schema.sql` / `seed.sql` を再適用します。
+- `.env` の `ADMIN_SLACK_USER_ID`（必須）から管理者メンバーを投入（初期パスワードは`password`）
 
 ---
 

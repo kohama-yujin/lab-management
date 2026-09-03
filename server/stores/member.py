@@ -140,6 +140,46 @@ def _resolve_role_id(cur, role_code: str) -> int:
     return int(row[0])
 
 
+def _ensure_active_admin_remains(
+    cur,
+    *,
+    member_id: int,
+    new_role_id: int,
+    new_graduation_year: int | None,
+) -> None:
+    """
+    更新後も在学中（graduation_year IS NULL）の管理者が1人以上残ることを保証する。
+    卒業済みメンバーは対象外。
+    """
+    cur.execute("SELECT id FROM roles WHERE code = %s", ("admin",))
+    admin_row = cur.fetchone()
+    if not admin_row:
+        raise StoreError("役職 'admin' が見つかりません", 500)
+    admin_role_id = int(admin_row[0])
+
+    # 自分以外の在学中管理者
+    cur.execute(
+        """
+        SELECT COUNT(*) FROM members
+        WHERE role_id = %s
+          AND graduation_year IS NULL
+          AND id <> %s
+        """,
+        (admin_role_id, member_id),
+    )
+    count_row = cur.fetchone()
+    other_active_admins = int(count_row[0]) if count_row else 0
+
+    self_is_active_admin = (
+        new_role_id == admin_role_id and new_graduation_year is None
+    )
+    if other_active_admins + (1 if self_is_active_admin else 0) < 1:
+        raise StoreError(
+            "在学中の管理者が0人になるため、この変更はできません",
+            400,
+        )
+
+
 def _normalize_username(username: str) -> str:
     try:
         return normalize_username(username)
@@ -198,6 +238,21 @@ def fetch_member_by_id(member_id: int) -> MemberItem | None:
     with connect() as conn:
         with conn.cursor() as cur:
             return _fetch_member(cur, member_id)
+
+
+def fetch_slack_user_id_by_member_id(member_id: int) -> str | None:
+    """メンバー ID から Slack ユーザー ID を返す。未設定なら None。"""
+    with connect() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT slack_user_id FROM members WHERE id = %s",
+                (member_id,),
+            )
+            row = cur.fetchone()
+            if not row or row[0] is None:
+                return None
+            value = str(row[0]).strip()
+            return value or None
 
 
 def fetch_member_by_slack_user_id(slack_user_id: str) -> MemberItem | None:
@@ -358,6 +413,12 @@ def update_member(
                 old_graduation_year = int(current[2]) if current[2] is not None else None
                 grade_id = _resolve_grade_id(cur, grade)
                 role_id = _resolve_role_id(cur, role)
+                _ensure_active_admin_remains(
+                    cur,
+                    member_id=member_id,
+                    new_role_id=role_id,
+                    new_graduation_year=normalized_graduation_year,
+                )
 
                 if password:
                     cur.execute(
