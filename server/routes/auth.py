@@ -20,6 +20,7 @@ from server.config import (
     load_slack_client_secret,
     load_slack_redirect_uri,
 )
+from server.member_validation import NAME_MAX_LEN
 from server.stores.member import fetch_member_by_id, fetch_member_by_slack_user_id
 
 logger = logging.getLogger(__name__)
@@ -30,9 +31,36 @@ SLACK_AUTHORIZE_URL = "https://slack.com/openid/connect/authorize"
 SLACK_TOKEN_URL = "https://slack.com/api/openid.connect.token"
 SLACK_USERINFO_URL = "https://slack.com/api/openid.connect.userInfo"
 
+# 自己登録前の Slack 身元（クライアントには ID を出さない）
+SESSION_PENDING_SLACK_USER_ID = "pending_slack_user_id"
+SESSION_PENDING_SLACK_NAME = "pending_slack_name"
+
 
 def _slack_configured() -> bool:
     return bool(load_slack_client_id() and load_slack_client_secret())
+
+
+def _suggested_name_from_user_info(user_info: dict) -> str:
+    """Slack userInfo から表示名候補を取り、名前上限に合わせて切り詰める。"""
+    raw = str(user_info.get("name") or user_info.get("given_name") or "").strip()
+    if not raw:
+        return ""
+    return raw[:NAME_MAX_LEN]
+
+
+def clear_pending_registration(request: Request) -> None:
+    """自己登録用の pending セッションを捨てる。"""
+    request.session.pop(SESSION_PENDING_SLACK_USER_ID, None)
+    request.session.pop(SESSION_PENDING_SLACK_NAME, None)
+
+
+def get_pending_slack_user_id(request: Request) -> str | None:
+    """自己登録用の pending Slack ユーザー ID を返す。"""
+    value = request.session.get(SESSION_PENDING_SLACK_USER_ID)
+    if not isinstance(value, str):
+        return None
+    normalized = value.strip()
+    return normalized or None
 
 
 def _post_form(url: str, data: dict[str, str]) -> dict:
@@ -54,26 +82,38 @@ def _get_bearer_json(url: str, access_token: str) -> dict:
 
 @auth_router.get("/auth/me")
 def auth_me(request: Request) -> JSONResponse:
-    """現在のログイン状態を返す。"""
+    """現在のログイン状態を返す。未登録 Slack ログイン中は pending_registration を返す。"""
     member_id = request.session.get("member_id")
-    if not member_id:
-        return JSONResponse({"logged_in": False})
+    if member_id:
+        member = fetch_member_by_id(int(member_id))
+        if member is None:
+            request.session.clear()
+            return JSONResponse({"logged_in": False, "pending_registration": False})
 
-    member = fetch_member_by_id(int(member_id))
-    if member is None:
-        request.session.clear()
-        return JSONResponse({"logged_in": False})
+        return JSONResponse(
+            {
+                "logged_in": True,
+                "pending_registration": False,
+                "id": member["id"],
+                "name": member["name"],
+                "grade": member["grade"],
+                "role": member["role"],
+                "graduation_year": member["graduation_year"],
+            }
+        )
 
-    return JSONResponse(
-        {
-            "logged_in": True,
-            "id": member["id"],
-            "name": member["name"],
-            "grade": member["grade"],
-            "role": member["role"],
-            "graduation_year": member["graduation_year"],
-        }
-    )
+    pending_slack = get_pending_slack_user_id(request)
+    if pending_slack:
+        suggested = request.session.get(SESSION_PENDING_SLACK_NAME)
+        return JSONResponse(
+            {
+                "logged_in": False,
+                "pending_registration": True,
+                "suggested_name": suggested if isinstance(suggested, str) else "",
+            }
+        )
+
+    return JSONResponse({"logged_in": False, "pending_registration": False})
 
 
 @auth_router.get("/auth/slack")
@@ -158,9 +198,14 @@ def slack_callback(
 
     member = fetch_member_by_slack_user_id(slack_user_id)
     if member is None:
-        logger.info("未登録の Slack ユーザー: %s", slack_user_id)
-        return RedirectResponse(url="/?auth_error=member_not_found", status_code=302)
+        # 自己登録へ進める。slack_user_id はセッションにのみ保持する。
+        logger.info("未登録の Slack ユーザー。自己登録へ: %s", slack_user_id)
+        request.session.pop("member_id", None)
+        request.session[SESSION_PENDING_SLACK_USER_ID] = slack_user_id
+        request.session[SESSION_PENDING_SLACK_NAME] = _suggested_name_from_user_info(user_info)
+        return RedirectResponse(url="/members", status_code=302)
 
+    clear_pending_registration(request)
     request.session["member_id"] = member["id"]
     return RedirectResponse(url="/", status_code=302)
 

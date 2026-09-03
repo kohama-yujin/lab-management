@@ -269,11 +269,13 @@ def create_member(
     role: str,
     username: str,
     password: str,
+    slack_user_id: str | None = None,
 ) -> MemberItem:
-    """メンバーを新規登録する。"""
+    """メンバーを新規登録する。slack_user_id は自己登録時のみ渡す。"""
     normalized_name = _normalize_name(name)
     normalized_username = _normalize_username(username)
     _validate_password(password, required=True)
+    normalized_slack = (slack_user_id or "").strip() or None
 
     try:
         with connect() as conn:
@@ -285,9 +287,10 @@ def create_member(
                 cur.execute(
                     """
                     INSERT INTO members (
-                        username, password_hash, name, role_id, grade_id, graduation_year
+                        username, password_hash, name, role_id, grade_id,
+                        graduation_year, slack_user_id
                     )
-                    VALUES (%s, %s, %s, %s, %s, NULL)
+                    VALUES (%s, %s, %s, %s, %s, NULL, %s)
                     RETURNING id
                     """,
                     (
@@ -296,6 +299,7 @@ def create_member(
                         normalized_name,
                         role_id,
                         grade_id,
+                        normalized_slack,
                     ),
                 )
                 inserted = cur.fetchone()

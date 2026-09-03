@@ -11,7 +11,17 @@ from server.stores import attendance as attendance_store
 from server.stores import work as work_store
 from server.stores.grade import get_grade_order
 from server.stores.history import get_history_for_day, list_history_dates
-from server.stores.member import create_member, fetch_member_by_credentials, list_active_members, list_graduated_members, update_member
+from server.routes.auth import (
+    clear_pending_registration,
+    get_pending_slack_user_id,
+)
+from server.stores.member import (
+    create_member,
+    fetch_member_by_credentials,
+    list_active_members,
+    list_graduated_members,
+    update_member,
+)
 from server.stores.role import get_roles
 from server.stores.status import get_today_status
 
@@ -128,8 +138,21 @@ def members_list(
 
 
 @api_router.post("/members")
-async def members_create(request: Request) -> dict[str, Any]:
-    """メンバーを新規登録する。"""
+async def members_create(_request: Request) -> dict[str, Any]:
+    """管理者によるメンバー登録は不可。自己登録 POST /members/self を使う。"""
+    raise ApiError("管理者によるメンバー登録はできません", 403)
+
+
+@api_router.post("/members/self")
+async def members_create_self(request: Request) -> dict[str, Any]:
+    """
+    Slack 新規ログイン後の自己登録。
+    pending セッション必須。role は member 固定、slack_user_id はセッションから設定する。
+    """
+    pending_slack = get_pending_slack_user_id(request)
+    if not pending_slack:
+        raise ApiError("自己登録のセッションがありません。Slack でログインし直してください", 401)
+
     try:
         body = await request.json()
     except Exception:
@@ -141,10 +164,13 @@ async def members_create(request: Request) -> dict[str, Any]:
     member = create_member(
         name=str(body.get("name") or ""),
         grade=str(body.get("grade") or ""),
-        role=str(body.get("role") or ""),
+        role="member",
         username=str(body.get("username") or ""),
         password=str(body.get("password") or ""),
+        slack_user_id=pending_slack,
     )
+    clear_pending_registration(request)
+    request.session["member_id"] = member["id"]
     return {"ok": True, "member": member}
 
 
@@ -169,6 +195,7 @@ async def members_update(member_id: int, request: Request) -> dict[str, Any]:
     else:
         graduation_year = None
 
+    # slack_user_id は body にあっても更新しない（仕様：編集不可）
     member = update_member(
         member_id,
         name=str(body.get("name") or ""),
