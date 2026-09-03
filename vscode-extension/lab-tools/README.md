@@ -1,71 +1,140 @@
-# lab-tools README
+# Lab Tools（VS Code / Cursor 拡張）
 
-This is the README for your extension "lab-tools". After writing up a brief description, we recommend including the following sections.
+研究室の在室状況をエディタから見たり、入退室したりするための拡張です。  
+**VS Code** と **Cursor** のどちらでも使えます。
 
-## Features
+Marketplace には公開していません。管理者から渡された **`.vsix` ファイル** をインストールしてください。
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
-
-For example if there is an image subfolder under your extension project workspace:
-
-\!\[feature X\]\(images/feature-x.png\)
-
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
-
-## Requirements
-
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
-
-## Extension Settings
-
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
-
-For example:
-
-This extension contributes the following settings:
-
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
-
-## Known Issues
-
-Calling out known issues can help limit users opening duplicate issues against your extension.
-
-## Release Notes
-
-Users appreciate release notes as you update your extension.
-
-### 1.0.0
-
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
+管理者向けのビルド・配布はリポジトリの `docs/vscode-extension-setup.md` を見てください。
 
 ---
 
-## Following extension guidelines
+## できること
 
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
+- サイドバーで **自分の状態** と **研究室の在室一覧** を見る
+- ステータスバーから **入室 / 退室** する
+- エディタを操作すると **自動で入室** する
+- 在室中に編集していると **作業中** になり、しばらく操作がなければ作業終了になる
+- ブラウザで在室管理ページを開く
 
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
+---
 
-## Working with Markdown
+## インストール
 
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
+1. 管理者から `lab-tools-*.vsix` を受け取る
+2. VS Code / Cursor でコマンドパレットを開く（`Ctrl+Shift+P`）
+3. **vsix** で検索し **Extensions: Install from VSIX...** を選ぶ
+4. 受け取った `.vsix` を指定する
+5. 必要ならコマンドパレットから **Developer: Reload Window** でウィンドウを再読み込みする
 
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
+左のアクティビティバーに **Lab Tools** のアイコンが出れば導入完了です。
 
-## For more information
+---
 
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
+## 初回の接続設定
 
-**Enjoy!**
+使う前に、自分のアカウントとサーバー接続先を登録します。値は管理者から案内されます。
+
+未設定のまま起動すると次の通知が出ます。
+
+> Lab Tools の設定が未完了です。資格情報 / サーバーIP 等を設定してください。
+
+**設定を開く** を選ぶか、次のいずれかで設定画面を開きます。
+
+- アクティビティバーの **Lab Tools** → ビュー右上の歯車
+- コマンドパレット → **Lab Tools: 接続設定を開く**
+
+| 項目 | 入れるもの |
+|------|------------|
+| **ユーザーID** | 研究室メンバーの username |
+| **パスワード** | そのアカウントのパスワード |
+| **APIキー** | 研究室共通のキー（管理者から共有） |
+| **サーバーIP:ポート** | 研究室 LAN からの接続先（例: `192.168.1.20:5000`） |
+| **公開URL** | 学外などからの接続先（例: `https://xxxx.trycloudflare.com`）。不要なら空でも可 |
+
+**サーバーIP** と **公開URL** は、少なくとも一方があれば動きます。研究室にいるときは IP、外出時は公開 URL、という使い分けです。接続は IP を先に試し、だめなら公開 URL に切り替えます。
+
+入力したら **保存** し、**接続テスト** で通ることを確認してください。
+
+補足:
+
+- パスワードと APIキーはエディタの秘密保管庫に入ります。設定 JSON には出ません
+- 2 回目以降、パスワードや APIキーを空のまま保存すると、以前の値がそのまま使われます
+- 接続テストが LAN 経由で成功すると、公開 URL が自動で入ることがあります
+
+「後で」を選ぶと、起動時の案内は出なくなります。設定はいつでも歯車から開けます。
+
+---
+
+## 使い方
+
+### サイドバー（Lab Tools）
+
+アクティビティバーの Lab Tools アイコンを開きます。
+
+- **自分の状態** … 在室・作業中かどうか
+- **在室状況** … メンバーの一覧（約 1 分ごとに自動更新）
+- ビュー右上
+  - 更新 … 今すぐ再取得
+  - 外部リンク … 在室管理ページをブラウザで開く
+  - 歯車 … 接続設定
+
+### ステータスバー（画面右下）
+
+3 つの表示があります。
+
+| 表示 | クリックしたとき |
+|------|------------------|
+| 自分の在室 | 確認ダイアログのあと、入室または退室 |
+| 作業時間 | サイドバーの Lab Tools を開く |
+| 在室人数 | サイドバーの Lab Tools を開く |
+
+手動の入退室では「入室しますか？」「退室しますか？」の確認が出ます。
+
+### 自動入室・作業記録
+
+設定が済んでいれば、次のように動きます。
+
+- 不在のときにウィンドウを操作したりファイルを編集したりすると **自動入室** します（確認ダイアログなし）
+- 在室中に編集すると **作業中** になります
+- 既定では **30 分** 操作がないと作業終了になります（設定 `labTools.workTracking.idleTimeoutMinutes`）
+- 手動で退室した直後（約 1 分）は、誤ってすぐ自動入室しないようにしています
+
+---
+
+## コマンド一覧
+
+コマンドパレット（`Ctrl+Shift+P`）で `Lab Tools` と入力すると見つかります。
+
+| コマンド | 内容 |
+|----------|------|
+| Lab Tools: 接続設定を開く | ユーザーID・接続先などの設定 |
+| Lab Tools: 在室状況を更新 | 一覧を再取得 |
+| Lab Tools: 在室管理ページを外部ブラウザで開く | Web の在室ページ |
+| Lab Tools: 入退室 | ステータスバーと同じ入退室 |
+| Lab Tools: 在室ビューを開く | サイドバーを前面に |
+
+---
+
+## うまく動かないとき
+
+管理者に聞く前に、次を確認してください。
+
+| 表示・症状 | よくある原因 |
+|------------|----------------|
+| 設定が未完了 | ユーザーID・パスワード・APIキー・接続先のどれかが空 |
+| サーバーに接続できません | 研究室のネットワークにいない、サーバー停止、公開 URL が古い |
+| ユーザーIDまたはパスワードが正しくありません | 入力ミス、または Web 側でパスワードを変えた |
+| APIキーを設定してください / APIキーが正しくありません | キーの未入力、または管理者から受け取った値と違う |
+| 卒業済みのため入退室できません | メンバー状態が卒業になっている |
+| 入室はできるが一覧が空／自分だけおかしい | 接続設定のユーザーIDが自分のアカウントか |
+
+公開 URL はトンネル再起動のたびに変わることがあります。学外から繋がらなくなったら、管理者に最新の URL を確認してください。
+
+---
+
+## 必要なもの
+
+- VS Code 1.80 以降、または同等の Cursor
+- 研究室の lab-management サーバーが動いていること
+- 管理者から渡された `.vsix`、ユーザーID / パスワード、APIキー、接続先

@@ -15,17 +15,6 @@ lab-management は **1 つの Slack アプリ** で次を行います。
 
 ---
 
-## 全体の流れ（チェックリスト）
-
-1. Slack アプリを新規作成する
-2. Sign in with Slack（Redirect URL）を設定する
-3. Bot Token Scopes を追加し、ワークスペースへインストールする
-4. `.env` に Client ID / Secret / Bot Token などを書く
-5. DB を init / reset し、管理者でログインできることを確認する
-6. 役職変更で DM が届くことを確認する
-
----
-
 ## 1. Slack アプリを作る
 
 1. [Slack API: Create an app](https://api.slack.com/apps?new_app=1) を開く

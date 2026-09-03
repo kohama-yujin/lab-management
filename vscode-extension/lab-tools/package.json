@@ -2,7 +2,13 @@
   "name": "lab-tools",
   "displayName": "lab-tools",
   "description": "研究室向けの在室管理・作業記録ツール",
-  "version": "0.0.1",
+  "version": "1.0.0",
+  "publisher": "kohama-yujin",
+  "author": {
+    "name": "kohama-yujin",
+    "url": "https://github.com/kohama-yujin"
+  },
+  "icon": "media/lab-tools.png",
   "engines": {
     "vscode": "^1.80.0"
   },
@@ -112,7 +118,7 @@
     "test": "vscode-test"
   },
   "devDependencies": {
-    "@types/vscode": "^1.134.0",
+    "@types/vscode": "1.80.0",
     "@types/mocha": "^10.0.10",
     "@types/node": "24.x",
     "typescript-eslint": "^8.61.1",
