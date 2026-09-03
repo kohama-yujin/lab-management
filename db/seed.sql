@@ -1,9 +1,9 @@
 -- 初期マスタデータ（schema.sql 適用後に実行）
 -- grades の code / sort_order が学年表示順の唯一の定義元になる。
 
-INSERT INTO roles (code, name) VALUES
-    ('member', '一般'),
-    ('admin', '管理者')
+INSERT INTO roles (code, name, sort_order) VALUES
+    ('admin', '管理者', 1),
+    ('member', '一般', 2)
 ON CONFLICT (code) DO NOTHING;
 
 INSERT INTO grades (code, sort_order) VALUES

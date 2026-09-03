@@ -12,6 +12,7 @@ CREATE TABLE roles (
     id              SMALLSERIAL     PRIMARY KEY,
     code            VARCHAR(32)     NOT NULL,
     name            VARCHAR(64)     NOT NULL,
+    sort_order      INT             NOT NULL,
     created_at      TIMESTAMPTZ     NOT NULL DEFAULT now(),
 
     CONSTRAINT roles_code_unique UNIQUE (code)
