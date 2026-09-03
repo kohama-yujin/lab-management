@@ -167,7 +167,7 @@ def seed_admin_from_env(conn: psycopg.Connection) -> None:
         role_id = int(role_row[0])
         grade_id = int(grade_row[0])
         # ログインは Slack 前提。拡張用パスワードは Web から後で設定する。
-        password_hash = hash_password("admin")
+        password_hash = hash_password("password")
 
         cur.execute(
             """
