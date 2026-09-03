@@ -19,3 +19,7 @@ INSERT INTO grades (code, sort_order) VALUES
     ('B1', 9),
     ('other', 10)
 ON CONFLICT (code) DO NOTHING;
+
+INSERT INTO members (username, password_hash, name, role_id, grade_id) VALUES
+    ('init', 'init', 'init', 1, 1)
+ON CONFLICT (username) DO NOTHING;

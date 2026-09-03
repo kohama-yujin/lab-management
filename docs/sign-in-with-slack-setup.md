@@ -13,7 +13,9 @@ lab-management の Web ログインは、Slack の **Sign in with Slack**（Open
 2. **Crate New App** で **Blank app** を選択する
 3. **App Name**`（例）Lab Tools` を入力し、導入したいコミュニティのワークスペースを選んで作成する
 4. 左メニュー **OAuth & Permissions** を開く
-5. **Redirect URLs** にコールバック URL `（例）http://サーバーIP:ポート/auth/slack/callback` を追加して保存する（ **Save URLs** ）
+5. **Redirect URLs** にコールバック URL `（例）http://サーバーIP:ポート/auth/slack/callback` を追加して保存する
+  > 必ず **Save URLs** を押す
+  > 編集時は **Done ➝ Save URLs** （忘れがち）
 6. 左メニュー **Basic Information** で **Client ID** と **Client Secret** を控える
 
 ---
