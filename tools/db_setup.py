@@ -270,7 +270,7 @@ def _require_admin_slack_user_id() -> str:
         raise SystemExit(
             "ADMIN_SLACK_USER_ID が未設定です。\n"
             "  .env に管理者の Slack メンバー ID（例: U012ABCDEF）を設定してください。\n"
-            "詳細: docs/sign-in-with-slack-setup.md"
+            "詳細: docs/slack-app-setup.md"
         )
     return slack_user_id
 

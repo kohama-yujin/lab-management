@@ -240,6 +240,21 @@ def fetch_member_by_id(member_id: int) -> MemberItem | None:
             return _fetch_member(cur, member_id)
 
 
+def fetch_slack_user_id_by_member_id(member_id: int) -> str | None:
+    """メンバー ID から Slack ユーザー ID を返す。未設定なら None。"""
+    with connect() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT slack_user_id FROM members WHERE id = %s",
+                (member_id,),
+            )
+            row = cur.fetchone()
+            if not row or row[0] is None:
+                return None
+            value = str(row[0]).strip()
+            return value or None
+
+
 def fetch_member_by_slack_user_id(slack_user_id: str) -> MemberItem | None:
     """Slack ユーザー ID からメンバーを取得する。"""
     normalized = (slack_user_id or "").strip()

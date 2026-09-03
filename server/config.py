@@ -98,3 +98,15 @@ def load_admin_slack_user_id() -> str | None:
     """seed（db-init / db-reset）に必須の管理者 Slack ユーザー ID。"""
     value = os.environ.get("ADMIN_SLACK_USER_ID", "").strip()
     return value or None
+
+
+def load_slack_bot_token() -> str | None:
+    """Bot User OAuth Token（xoxb-…）。"""
+    value = os.environ.get("SLACK_BOT_TOKEN", "").strip()
+    return value or None
+
+
+def load_slack_app_id() -> str | None:
+    """Slack アプリ ID（Collaborators 画面リンク用）。"""
+    value = os.environ.get("SLACK_APP_ID", "").strip()
+    return value or None
