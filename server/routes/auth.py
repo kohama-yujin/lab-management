@@ -21,7 +21,7 @@ from server.config import (
     load_slack_redirect_uri,
 )
 from server.member_validation import NAME_MAX_LEN
-from server.stores.member import fetch_member_by_id, fetch_member_by_slack_user_id
+from server.stores.member import MemberItem, fetch_member_by_id, fetch_member_by_slack_user_id
 
 logger = logging.getLogger(__name__)
 
@@ -63,6 +63,27 @@ def get_pending_slack_user_id(request: Request) -> str | None:
     return normalized or None
 
 
+def get_session_member(request: Request) -> MemberItem | None:
+    """
+    セッションの member_id からログイン中メンバーを返す。
+    無効な ID ならセッションを破棄して None。
+    """
+    member_id = request.session.get("member_id")
+    if not member_id:
+        return None
+    try:
+        parsed_id = int(member_id)
+    except (TypeError, ValueError):
+        request.session.clear()
+        return None
+
+    member = fetch_member_by_id(parsed_id)
+    if member is None:
+        request.session.clear()
+        return None
+    return member
+
+
 def _post_form(url: str, data: dict[str, str]) -> dict:
     """application/x-www-form-urlencoded で POST し JSON を返す。"""
     body = urllib.parse.urlencode(data).encode("utf-8")
@@ -83,13 +104,8 @@ def _get_bearer_json(url: str, access_token: str) -> dict:
 @auth_router.get("/auth/me")
 def auth_me(request: Request) -> JSONResponse:
     """現在のログイン状態を返す。未登録 Slack ログイン中は pending_registration を返す。"""
-    member_id = request.session.get("member_id")
-    if member_id:
-        member = fetch_member_by_id(int(member_id))
-        if member is None:
-            request.session.clear()
-            return JSONResponse({"logged_in": False, "pending_registration": False})
-
+    member = get_session_member(request)
+    if member is not None:
         return JSONResponse(
             {
                 "logged_in": True,
