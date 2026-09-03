@@ -150,6 +150,12 @@
   flex-shrink: 0;
 }
 
+.auth-pending {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
 .auth-session {
   position: relative;
 }

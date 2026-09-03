@@ -15,6 +15,10 @@ const AuthBar = {
   _wired: false,
   /** @type {{ id: number, name: string, grade: string, role: string, graduation_year: number | null } | null} */
   _member: null,
+  /** 自己登録待ち（pending Slack セッション）か */
+  _pendingRegistration: false,
+  /** 自己登録フォーム用の名前候補 */
+  _suggestedName: "",
 
   /**
    * ログイン中メンバーを返す。未ログインなら null。
@@ -30,6 +34,22 @@ const AuthBar = {
    */
   isLoggedIn() {
     return this._member != null;
+  },
+
+  /**
+   * Slack 自己登録待ちなら true。
+   * @returns {boolean}
+   */
+  isPendingRegistration() {
+    return this._pendingRegistration;
+  },
+
+  /**
+   * 自己登録フォーム用の名前候補を返す。
+   * @returns {string}
+   */
+  getSuggestedName() {
+    return this._suggestedName;
   },
 
   /**
@@ -78,6 +98,7 @@ const AuthBar = {
 
     const userBtn = document.getElementById("auth-user-info");
     const logoutBtn = document.getElementById("auth-logout-btn");
+    const pendingCancel = document.getElementById("auth-pending-cancel");
     const session = document.getElementById("auth-session");
     if (session) {
       session.addEventListener("click", (event) => {
@@ -91,6 +112,11 @@ const AuthBar = {
     }
     if (logoutBtn) {
       logoutBtn.addEventListener("click", () => {
+        this.logout();
+      });
+    }
+    if (pendingCancel) {
+      pendingCancel.addEventListener("click", () => {
         this.logout();
       });
     }
@@ -125,6 +151,7 @@ const AuthBar = {
 
   async refresh() {
     const loginBtn = document.getElementById("auth-login-btn");
+    const pending = document.getElementById("auth-pending");
     const session = document.getElementById("auth-session");
     const userBtn = document.getElementById("auth-user-info");
     const label = document.getElementById("auth-user-label");
@@ -150,7 +177,12 @@ const AuthBar = {
           role: data.role || "member",
           graduation_year: data.graduation_year ?? null,
         };
+        this._pendingRegistration = false;
+        this._suggestedName = "";
         loginBtn.hidden = true;
+        if (pending) {
+          pending.hidden = true;
+        }
         session.hidden = false;
         label.textContent = graduated
           ? `${data.name} / ${data.graduation_year}年卒`
@@ -159,12 +191,32 @@ const AuthBar = {
         userBtn.dataset.grade = graduated ? "graduated" : data.grade || "";
         return;
       }
+
+      if (data.pending_registration) {
+        this._member = null;
+        this._pendingRegistration = true;
+        this._suggestedName =
+          typeof data.suggested_name === "string" ? data.suggested_name : "";
+        loginBtn.hidden = true;
+        if (pending) {
+          pending.hidden = false;
+        }
+        session.hidden = true;
+        label.textContent = "";
+        delete userBtn.dataset.grade;
+        return;
+      }
     } catch (_err) {
       // 未ログイン扱いでログインボタンを表示する
     }
 
     this._member = null;
+    this._pendingRegistration = false;
+    this._suggestedName = "";
     loginBtn.hidden = false;
+    if (pending) {
+      pending.hidden = true;
+    }
     session.hidden = true;
     label.textContent = "";
     delete userBtn.dataset.grade;

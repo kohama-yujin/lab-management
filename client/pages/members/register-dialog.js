@@ -13,16 +13,21 @@ const RegisterDialog = {
     this.form.addEventListener("submit", (event) => this.handleSubmit(event));
   },
 
-  open() {
+  /**
+   * 自己登録ダイアログを開く。
+   * @param {string} [suggestedName]
+   */
+  open(suggestedName = "") {
     this.form.reset();
     this.fillSelects();
+    this.form.elements.name.value = suggestedName || "";
     MemberFormUtils.showError(this.error, null);
     MemberFormUtils.openDialog(this.dialog);
+    this.form.elements.name.focus();
   },
 
   fillSelects() {
     MemberFormUtils.fillGradeSelect(this.form.elements.grade);
-    MemberFormUtils.fillRoleSelect(this.form.elements.role);
   },
 
   handleSubmit(event) {
@@ -46,7 +51,6 @@ const RegisterDialog = {
     void this.submitForm({
       name: this.form.elements.name.value,
       grade: this.form.elements.grade.value,
-      role: this.form.elements.role.value,
       username: this.form.elements.username.value,
       password,
     });
@@ -59,9 +63,10 @@ const RegisterDialog = {
     }
 
     try {
-      const res = await fetch("/members", {
+      const res = await fetch("/members/self", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
         body: JSON.stringify(payload),
       });
       if (!res.ok) {
@@ -71,7 +76,7 @@ const RegisterDialog = {
       }
 
       MemberFormUtils.closeDialog(this.dialog);
-      window.location.reload();
+      window.location.href = "/members";
     } catch (err) {
       MemberFormUtils.showError(this.error, err.message || "登録に失敗しました");
     } finally {

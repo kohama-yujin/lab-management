@@ -11,7 +11,19 @@ from server.stores import attendance as attendance_store
 from server.stores import work as work_store
 from server.stores.grade import get_grade_order
 from server.stores.history import get_history_for_day, list_history_dates
-from server.stores.member import create_member, fetch_member_by_credentials, list_active_members, list_graduated_members, update_member
+from server.routes.auth import (
+    clear_pending_registration,
+    get_pending_slack_user_id,
+    get_session_member,
+)
+from server.stores.member import (
+    create_member,
+    fetch_member_by_credentials,
+    fetch_member_by_id,
+    list_active_members,
+    list_graduated_members,
+    update_member,
+)
 from server.stores.role import get_roles
 from server.stores.status import get_today_status
 
@@ -128,8 +140,24 @@ def members_list(
 
 
 @api_router.post("/members")
-async def members_create(request: Request) -> dict[str, Any]:
-    """メンバーを新規登録する。"""
+async def members_create(_request: Request) -> dict[str, Any]:
+    """管理者によるメンバー登録は不可。自己登録 POST /members/self を使う。"""
+    raise ApiError("管理者によるメンバー登録はできません", 403)
+
+
+@api_router.post("/members/self")
+async def members_create_self(request: Request) -> dict[str, Any]:
+    """
+    Slack 新規ログイン後の自己登録。
+    pending セッション必須。role は member 固定、slack_user_id はセッションから設定する。
+    """
+    if get_session_member(request) is not None:
+        raise ApiError("既にログインしています", 403)
+
+    pending_slack = get_pending_slack_user_id(request)
+    if not pending_slack:
+        raise ApiError("自己登録のセッションがありません。Slack でログインし直してください", 401)
+
     try:
         body = await request.json()
     except Exception:
@@ -138,19 +166,39 @@ async def members_create(request: Request) -> dict[str, Any]:
     if not isinstance(body, dict):
         raise ApiError("JSON 本文が不正です", 400)
 
+    # body の role / slack_user_id は信じない
     member = create_member(
         name=str(body.get("name") or ""),
         grade=str(body.get("grade") or ""),
-        role=str(body.get("role") or ""),
+        role="member",
         username=str(body.get("username") or ""),
         password=str(body.get("password") or ""),
+        slack_user_id=pending_slack,
     )
+    clear_pending_registration(request)
+    request.session["member_id"] = member["id"]
     return {"ok": True, "member": member}
 
 
 @api_router.put("/members/{member_id}")
 async def members_update(member_id: int, request: Request) -> dict[str, Any]:
-    """メンバー情報を更新する。"""
+    """
+    メンバー情報を更新する。
+    ログイン必須。管理者は全員、一般は自分のみ。一般は役職を変更できない。
+    slack_user_id は更新しない。
+    """
+    actor = get_session_member(request)
+    if actor is None:
+        raise ApiError("ログインが必要です", 401)
+
+    target = fetch_member_by_id(member_id)
+    if target is None:
+        raise ApiError("メンバーが見つかりません", 404)
+
+    is_admin = actor["role"] == "admin"
+    if not is_admin and int(actor["id"]) != int(member_id):
+        raise ApiError("他のメンバーは編集できません", 403)
+
     try:
         body = await request.json()
     except Exception:
@@ -169,11 +217,15 @@ async def members_update(member_id: int, request: Request) -> dict[str, Any]:
     else:
         graduation_year = None
 
+    # 一般は役職を変えさせない。管理者のみ body の role を採用する。
+    role = str(body.get("role") or "") if is_admin else target["role"]
+
+    # slack_user_id は body にあっても update_member に渡さない
     member = update_member(
         member_id,
         name=str(body.get("name") or ""),
         grade=str(body.get("grade") or ""),
-        role=str(body.get("role") or ""),
+        role=role,
         username=str(body.get("username") or ""),
         password=str(password) if password else None,
         graduation_year=graduation_year,

@@ -1,7 +1,11 @@
-<header class="site-header">
+﻿<header class="site-header">
   <h1 class="title" id="site-title"></h1>
   <div id="auth-bar" class="auth-bar">
     <a id="auth-login-btn" class="nav-btn nav-btn-slack" href="/auth/slack">Slackでログイン</a>
+    <div id="auth-pending" class="auth-pending" hidden>
+      <a id="auth-pending-btn" class="nav-btn nav-btn-slack" href="/members">メンバー登録を完了</a>
+      <button type="button" id="auth-pending-cancel" class="nav-btn">キャンセル</button>
+    </div>
     <div id="auth-session" class="auth-session" hidden>
       <button
         type="button"

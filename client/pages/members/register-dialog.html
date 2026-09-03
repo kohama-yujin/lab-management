@@ -1,6 +1,7 @@
 <dialog id="register-dialog" class="member-dialog" aria-labelledby="register-dialog-title">
   <form id="register-form" method="dialog" class="member-form" novalidate>
     <h2 id="register-dialog-title" class="dialog-title">メンバー登録</h2>
+    <p class="form-hint form-hint-note">初回登録です。<br>ユーザーIDとパスワードは入退室時の認証に使用します。</p>
 
     <label class="form-field">
       <span class="form-label">名前</span>
@@ -16,11 +17,6 @@
     <label class="form-field">
       <span class="form-label">学年</span>
       <select name="grade"></select>
-    </label>
-
-    <label class="form-field">
-      <span class="form-label">役職</span>
-      <select name="role"></select>
     </label>
 
     <label class="form-field">
@@ -57,11 +53,11 @@
         placeholder="もう一度入力"
       />
     </label>
-    
+
     <p id="register-error" class="form-error" hidden></p>
 
     <div class="dialog-actions">
-      <button type="button" class="dialog-btn" data-close-dialog>キャンセル</button>
+      <button type="button" class="dialog-btn" data-close-dialog>あとで</button>
       <button type="submit" class="dialog-btn dialog-btn-primary">登録</button>
     </div>
   </form>

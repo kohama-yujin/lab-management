@@ -89,15 +89,19 @@ const EditDialog = {
     }
 
     MemberFormUtils.showError(this.error, null);
-    void this.submitForm({
+    const payload = {
       memberId: Number(this.form.elements.member_id.value),
       name: this.form.elements.name.value,
       grade: this.form.elements.grade.value,
-      role: this.form.elements.role.value,
       username: this.form.elements.username.value,
       password: password || null,
       graduation_year: graduationYear,
-    });
+    };
+    // 一般は役職を送らない（サーバ側でも既存維持するが、UIでも送らない）
+    if (AuthBar.isAdmin()) {
+      payload.role = this.form.elements.role.value;
+    }
+    void this.submitForm(payload);
   },
 
   async submitForm(payload) {
@@ -110,10 +114,12 @@ const EditDialog = {
       const body = {
         name: payload.name,
         grade: payload.grade,
-        role: payload.role,
         username: payload.username,
         graduation_year: payload.graduation_year,
       };
+      if (payload.role) {
+        body.role = payload.role;
+      }
       if (payload.password) {
         body.password = payload.password;
       }
@@ -121,6 +127,7 @@ const EditDialog = {
       const res = await fetch(`/members/${payload.memberId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
         body: JSON.stringify(body),
       });
       if (!res.ok) {

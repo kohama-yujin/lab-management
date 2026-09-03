@@ -263,6 +263,33 @@ async function loadDialogPartials() {
   els.dialogRoot.innerHTML = html;
 }
 
+/**
+ * Slack 自己登録待ちなら登録ダイアログを開く。
+ */
+function openSelfRegisterIfPending() {
+  if (!AuthBar.isPendingRegistration()) {
+    return;
+  }
+  RegisterDialog.open(AuthBar.getSuggestedName());
+}
+
+/**
+ * ヘッダーの「メンバー登録を完了」からダイアログを再開できるようにする。
+ */
+function wirePendingRegisterButton() {
+  const pendingBtn = document.getElementById("auth-pending-btn");
+  if (!pendingBtn) {
+    return;
+  }
+  pendingBtn.addEventListener("click", (event) => {
+    if (!AuthBar.isPendingRegistration()) {
+      return;
+    }
+    event.preventDefault();
+    RegisterDialog.open(AuthBar.getSuggestedName());
+  });
+}
+
 async function boot() {
   try {
     await SiteLayout.mount();
@@ -272,6 +299,7 @@ async function boot() {
     await loadDialogPartials();
     RegisterDialog.init();
     EditDialog.init();
+    wirePendingRegisterButton();
 
     await Promise.all([GradeConfig.ensureLoaded(), RoleConfig.ensureLoaded()]);
     RegisterDialog.fillSelects();
@@ -284,6 +312,7 @@ async function boot() {
   }
 
   renderBoards();
+  openSelfRegisterIfPending();
 }
 
 boot();
