@@ -122,6 +122,7 @@ Copy-Item .env.example .env
 - `DATABASE_URL` の **データベースが無ければ CREATE DATABASE**
 - `db/schema.sql` でテーブル作成（既にあればスキップ）
 - `db/seed.sql` で学年・役職マスタ投入（再実行可）
+- `.env` の `ADMIN_SLACK_USER_ID`（必須）から管理者メンバーを投入（初期パスワードは`admin`）
 
 ### 4.3 状態確認
 
@@ -148,6 +149,8 @@ database: lab_management_dev
 ```
 
 `public` スキーマを DROP して作り直し、`schema.sql` / `seed.sql` を再適用します。
+
+`.env` の `ADMIN_SLACK_USER_ID`（Slack メンバー ID）は必須です。未設定だと init / reset できません。seed の一環でその ID 付きの管理者（`username=admin, password=admin`）を投入します。
 
 ---
 

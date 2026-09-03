@@ -69,7 +69,7 @@ def load_api_key() -> str | None:
 
 
 def load_session_secret() -> str:
-    """セッション署名用シークレットを返す。未設定時は開発用の固定値。"""
+    """セッション署名用シークレットを返す。"""
     secret = os.environ.get("SESSION_SECRET", "").strip()
     return secret or None
 
@@ -92,3 +92,9 @@ def load_slack_redirect_uri() -> str:
     if value:
         return value
     return "http://localhost:5000/auth/slack/callback"
+
+
+def load_admin_slack_user_id() -> str | None:
+    """seed（db-init / db-reset）に必須の管理者 Slack ユーザー ID。"""
+    value = os.environ.get("ADMIN_SLACK_USER_ID", "").strip()
+    return value or None

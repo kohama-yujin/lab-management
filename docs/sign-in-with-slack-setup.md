@@ -28,6 +28,7 @@ lab-management の Web ログインは、Slack の **Sign in with Slack**（Open
 SLACK_CLIENT_ID=1234567890.1234567890123
 SLACK_CLIENT_SECRET=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 SLACK_REDIRECT_URI=http://サーバーIP:ポート/auth/slack/callback
+ADMIN_SLACK_USER_ID=U012ABCDEF
 SESSION_SECRET=ランダムな長い文字列を自由に設定
 ```
 
@@ -36,9 +37,10 @@ SESSION_SECRET=ランダムな長い文字列を自由に設定
 | `SLACK_CLIENT_ID`     | Slack アプリの Client ID           |
 | `SLACK_CLIENT_SECRET` | Slack アプリの Client Secret       |
 | `SLACK_REDIRECT_URI`  | 2. で登録した URL と **完全一致** させる    |
+| `ADMIN_SLACK_USER_ID` | seed（db-init / db-reset）時に管理者として投入する Slack メンバー ID |
 | `SESSION_SECRET`      | セッション Cookie 署名用。本番では推測困難な値にする |
 
-これでセットアップ完了です。
+`ADMIN_SLACK_USER_ID` は Slack プロフィールのメンバー ID（`U…`）です。未設定だと `db-init` / `db-reset` は実行できません。設定後に実行すると、その ID 付きの管理者（`username=admin`）が投入され、Sign in with Slack でログインできます。
 
 ---
 
