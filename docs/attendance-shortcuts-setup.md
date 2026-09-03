@@ -27,7 +27,7 @@
 
 ### 入室報告の作成
 
-1. iPhone で **[入室報告ショートカット](https://www.icloud.com/shortcuts/ff795a078ce1445cbf0263e9bed7dabf)** から **「ショートカットを追加」**
+1. iPhone で **[入室報告ショートカット](https://www.icloud.com/shortcuts/10540428075d4d42ad801f0fd2274cc4)** から **「ショートカットを追加」**
 2. 追加された **「入室報告」** の **「…」** を押し、詳細を開く
 3. **`http://サーバーIP:ポート/start_attendance` の内容を取得** 横の **「>」** を展開し、次を設定する
    - **メソッド**: POST
