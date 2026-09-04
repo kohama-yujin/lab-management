@@ -277,7 +277,7 @@
 }
 
 @media (max-width: 720px) {
-  .sub-header {
+  .sub-header-right {
     display: none;
   }
 
