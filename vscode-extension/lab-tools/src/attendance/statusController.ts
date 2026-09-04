@@ -341,6 +341,13 @@ export class StatusController implements vscode.Disposable {
 		await this.webviewProvider.postState(state);
 	}
 
+	/**
+	 * 拡張無効化時に作業セッションだけ終了する。
+	 */
+	async endWorkOnDeactivate(): Promise<void> {
+		await this.workSession.endWorkOnDeactivate();
+	}
+
 	dispose(): void {
 		clearInterval(this.autoReloadTimer);
 		if (this.autoCheckInTimer) {

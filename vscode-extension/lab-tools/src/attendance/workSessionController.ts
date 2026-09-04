@@ -74,6 +74,42 @@ export class WorkSessionController implements vscode.Disposable {
 	}
 
 	/**
+	 * 拡張終了時に作業だけ終了する（在室はそのまま）。
+	 * VS Code が deactivate を待てる範囲のベストエフォート送信。
+	 */
+	async endWorkOnDeactivate(): Promise<void> {
+		this.clearIdleTimer();
+		if (this.activityTimer) {
+			clearTimeout(this.activityTimer);
+			this.activityTimer = null;
+		}
+		if (!(await this.store.isConfigured())) {
+			return;
+		}
+
+		const { status, memberId, lastBaseUrl } = this.getContext();
+		if (!status || memberId === null) {
+			return;
+		}
+
+		const self = findMemberById(status, memberId);
+		if (!self?.present || !self.working) {
+			return;
+		}
+
+		this.idleEndInFlight = true;
+		try {
+			// 終了時は通知せず、最後の操作時刻で締める（アイドル終了と同じ）
+			await endWork(this.store, {
+				preferredBaseUrl: lastBaseUrl ?? undefined,
+				endAt: new Date(this.lastActivityAt).toISOString(),
+			});
+		} finally {
+			this.idleEndInFlight = false;
+		}
+	}
+
+	/**
 	 * status 更新後にアイドル監視を再同期する。
 	 */
 	notifyStatusUpdated(): void {
