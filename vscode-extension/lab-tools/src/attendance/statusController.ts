@@ -8,12 +8,14 @@ import { buildViewState, resolveViewError } from '../attendance/buildViewState';
 import { confirmCheckIn, confirmCheckOut } from '../attendance/dialogs';
 import { findMemberById } from '../attendance/findMember';
 import { WorkSessionController } from '../attendance/workSessionController';
+import { WorkActivityStore } from '../attendance/workActivityStore';
 import type { SettingsStore } from '../config/settingsStore';
 import { ConfigKeys } from '../config/keys';
 import type { LabError } from '../errors/labError';
 import { displayMessage } from '../errors/labError';
 import { AttendanceStatusBar } from '../statusBar/attendanceStatusBar';
 import { StatusWebviewProvider } from '../views/statusWebviewProvider';
+import { endWork, startWork } from '../api/workClient';
 
 /** 在室状況の自動更新間隔（ミリ秒） */
 const AUTO_RELOAD_INTERVAL_MS = 60_000;
@@ -38,16 +40,21 @@ export class StatusController implements vscode.Disposable {
 	private reloadChain: Promise<void> = Promise.resolve();
 	private readonly autoReloadTimer: ReturnType<typeof setInterval>;
 	private readonly disposables: vscode.Disposable[] = [];
+	private readonly activityStore: WorkActivityStore;
 
 	private autoCheckInInFlight = false;
 	private autoCheckInTimer: ReturnType<typeof setTimeout> | null = null;
 	/** 最後に手動退室した時刻（未退室なら 0） */
 	private lastManualCheckOutAt = 0;
+	private bootstrapDone = false;
+	private bootstrapInFlight = false;
 
 	constructor(
 		private readonly store: SettingsStore,
 		private readonly extensionUri: vscode.Uri,
+		globalState: vscode.Memento,
 	) {
+		this.activityStore = new WorkActivityStore(globalState);
 		this.webviewProvider = new StatusWebviewProvider(extensionUri, (msg) => this.onWebviewMessage(msg));
 		this.statusBar = new AttendanceStatusBar(
 			() => {
@@ -59,6 +66,7 @@ export class StatusController implements vscode.Disposable {
 		);
 		this.workSession = new WorkSessionController(
 			this.store,
+			this.activityStore,
 			() => ({
 				status: this.status,
 				memberId: this.memberId,
@@ -144,12 +152,22 @@ export class StatusController implements vscode.Disposable {
 		}
 		await this.pushUi();
 		this.workSession.notifyStatusUpdated();
+		if (!this.bootstrapDone && !this.bootstrapInFlight) {
+			void this.runStartupBootstrap();
+		}
 	}
 
 	/**
 	 * 不在時のエディタ操作による自動入室（確認ダイアログなし）。
 	 */
 	async tryAutoCheckIn(): Promise<void> {
+		if (this.bootstrapInFlight) {
+			return;
+		}
+		// 設定済みで起動ブートストラップ前なら、入室はブートストラップに任せる
+		if (!this.bootstrapDone && (await this.store.isConfigured())) {
+			return;
+		}
 		if (this.autoCheckInInFlight) {
 			return;
 		}
@@ -282,9 +300,81 @@ export class StatusController implements vscode.Disposable {
 			this.autoCheckInTimer = null;
 		}
 		this.workSession.prepareForCheckout();
-		await this.postAttendance(() =>
-			endAttendance(this.store, { preferredBaseUrl: this.lastBaseUrl ?? undefined }),
-		);
+		const result = await endAttendance(this.store, {
+			preferredBaseUrl: this.lastBaseUrl ?? undefined,
+		});
+		if (!result.ok) {
+			void vscode.window.showErrorMessage(displayMessage(result.error));
+			return;
+		}
+		if (result.baseUrl) {
+			this.lastBaseUrl = result.baseUrl;
+		}
+		await this.activityStore.clearCheckpoint();
+		await this.reload();
+	}
+
+	/**
+	 * 起動時に前回作業を締め、入室・作業開始する。
+	 * 他窓が生存中ならスキップ（セッション分割を防ぐ）。
+	 */
+	private async runStartupBootstrap(): Promise<void> {
+		if (this.bootstrapDone || this.bootstrapInFlight) {
+			return;
+		}
+		if (!(await this.store.isConfigured())) {
+			return;
+		}
+		if (this.activityStore.isPeerAlive()) {
+			this.bootstrapDone = true;
+			await this.activityStore.touchAlive();
+			return;
+		}
+		if (!(await this.activityStore.tryAcquireBootstrapLock())) {
+			this.bootstrapDone = true;
+			return;
+		}
+
+		this.bootstrapInFlight = true;
+		try {
+			const settings = await this.store.get();
+			const sharedMs = this.activityStore.getSharedLastActivityMs(settings.username);
+			const endResult = await endWork(this.store, {
+				preferredBaseUrl: this.lastBaseUrl ?? undefined,
+				// チェックポイントが無いときは open のみ now で閉じ、閉じ済みの書き換えはしない
+				endAt: sharedMs !== null ? new Date(sharedMs).toISOString() : undefined,
+			});
+			if (!endResult.ok) {
+				void vscode.window.showErrorMessage(displayMessage(endResult.error));
+			}
+
+			const attendResult = await startAttendance(this.store, {
+				preferredBaseUrl: this.lastBaseUrl ?? undefined,
+			});
+			if (!attendResult.ok) {
+				void vscode.window.showErrorMessage(displayMessage(attendResult.error));
+				return;
+			}
+			if (attendResult.baseUrl) {
+				this.lastBaseUrl = attendResult.baseUrl;
+			}
+
+			const workResult = await startWork(this.store, {
+				preferredBaseUrl: this.lastBaseUrl ?? undefined,
+			});
+			if (!workResult.ok) {
+				void vscode.window.showErrorMessage(displayMessage(workResult.error));
+				return;
+			}
+
+			const now = Date.now();
+			await this.activityStore.touchActivity(settings.username, now);
+			await this.activityStore.touchAlive();
+			this.bootstrapDone = true;
+			await this.reload({ silent: true });
+		} finally {
+			this.bootstrapInFlight = false;
+		}
 	}
 
 	/**
@@ -339,13 +429,6 @@ export class StatusController implements vscode.Disposable {
 		});
 		this.statusBar.update(this.status, this.memberId, settings.username, effectiveError);
 		await this.webviewProvider.postState(state);
-	}
-
-	/**
-	 * 拡張無効化時に作業セッションだけ終了する。
-	 */
-	async endWorkOnDeactivate(): Promise<void> {
-		await this.workSession.endWorkOnDeactivate();
 	}
 
 	dispose(): void {

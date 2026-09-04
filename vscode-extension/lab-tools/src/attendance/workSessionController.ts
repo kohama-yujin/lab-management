@@ -5,6 +5,7 @@ import { findMemberById } from './findMember';
 import type { SettingsStore } from '../config/settingsStore';
 import { ConfigKeys } from '../config/keys';
 import { displayMessage } from '../errors/labError';
+import { ALIVE_HEARTBEAT_MS, type WorkActivityStore } from './workActivityStore';
 
 /** エディタ操作のデバウンス（ミリ秒） */
 const ACTIVITY_DEBOUNCE_MS = 400;
@@ -17,23 +18,28 @@ export type WorkSessionContext = {
 
 /**
  * 在室中のエディタ操作で作業開始し、アイドル・退室で終了する。
+ * 最終操作時刻は globalState 経由でウィンドウ間共有する。
  */
 export class WorkSessionController implements vscode.Disposable {
 	private activityTimer: ReturnType<typeof setTimeout> | null = null;
 	private idleTimer: ReturnType<typeof setTimeout> | null = null;
+	private aliveTimer: ReturnType<typeof setInterval> | null = null;
 	private startInFlight = false;
 	private idleEndInFlight = false;
+	/** 窓ローカルのキャッシュ。判定の真実は activityStore 側 */
 	private lastActivityAt = Date.now();
 	private readonly disposables: vscode.Disposable[] = [];
 
 	constructor(
 		private readonly store: SettingsStore,
+		private readonly activityStore: WorkActivityStore,
 		private readonly getContext: () => WorkSessionContext,
 		private readonly reload: (options?: { silent?: boolean }) => Promise<void>,
 	) {
 		this.disposables.push(
 			vscode.window.onDidChangeWindowState((state) => {
 				if (state.focused) {
+					void this.syncSharedActivityAndReschedule();
 					this.scheduleActivity();
 				}
 			}),
@@ -44,6 +50,10 @@ export class WorkSessionController implements vscode.Disposable {
 				this.scheduleActivity();
 			}),
 		);
+		this.aliveTimer = setInterval(() => {
+			void this.activityStore.touchAlive();
+		}, ALIVE_HEARTBEAT_MS);
+		void this.activityStore.touchAlive();
 	}
 
 	/**
@@ -74,50 +84,29 @@ export class WorkSessionController implements vscode.Disposable {
 	}
 
 	/**
-	 * 拡張終了時に作業だけ終了する（在室はそのまま）。
-	 * VS Code が deactivate を待てる範囲のベストエフォート送信。
-	 */
-	async endWorkOnDeactivate(): Promise<void> {
-		this.clearIdleTimer();
-		if (this.activityTimer) {
-			clearTimeout(this.activityTimer);
-			this.activityTimer = null;
-		}
-		if (!(await this.store.isConfigured())) {
-			return;
-		}
-
-		const { status, memberId, lastBaseUrl } = this.getContext();
-		if (!status || memberId === null) {
-			return;
-		}
-
-		const self = findMemberById(status, memberId);
-		if (!self?.present || !self.working) {
-			return;
-		}
-
-		this.idleEndInFlight = true;
-		try {
-			// 終了時は通知せず、最後の操作時刻で締める（アイドル終了と同じ）
-			await endWork(this.store, {
-				preferredBaseUrl: lastBaseUrl ?? undefined,
-				endAt: new Date(this.lastActivityAt).toISOString(),
-			});
-		} finally {
-			this.idleEndInFlight = false;
-		}
-	}
-
-	/**
 	 * status 更新後にアイドル監視を再同期する。
 	 */
 	notifyStatusUpdated(): void {
+		void this.syncSharedActivityAndReschedule();
+	}
+
+	/**
+	 * 他窓の共有時刻を取り込み、アイドル監視を張り直す。
+	 */
+	private async syncSharedActivityAndReschedule(): Promise<void> {
+		const settings = await this.store.get();
+		const shared = this.activityStore.getSharedLastActivityMs(settings.username);
+		if (shared !== null) {
+			this.lastActivityAt = Math.max(this.lastActivityAt, shared);
+		}
 		this.resetIdleTimer();
 	}
 
 	private async onActivity(): Promise<void> {
-		this.lastActivityAt = Date.now();
+		const now = Date.now();
+		const settings = await this.store.get();
+		this.lastActivityAt = await this.activityStore.touchActivity(settings.username, now);
+		await this.activityStore.touchAlive();
 		await this.tryStartWork();
 		this.resetIdleTimer();
 	}
@@ -177,6 +166,12 @@ export class WorkSessionController implements vscode.Disposable {
 		const self = findMemberById(status, memberId);
 		if (!self?.present || !self.working) {
 			return;
+		}
+
+		const settings = await this.store.get();
+		const shared = this.activityStore.getSharedLastActivityMs(settings.username);
+		if (shared !== null) {
+			this.lastActivityAt = Math.max(this.lastActivityAt, shared);
 		}
 
 		const idleMs = this.getIdleTimeoutMs();
@@ -240,6 +235,10 @@ export class WorkSessionController implements vscode.Disposable {
 		this.clearIdleTimer();
 		if (this.activityTimer) {
 			clearTimeout(this.activityTimer);
+		}
+		if (this.aliveTimer) {
+			clearInterval(this.aliveTimer);
+			this.aliveTimer = null;
 		}
 		for (const d of this.disposables) {
 			d.dispose();
