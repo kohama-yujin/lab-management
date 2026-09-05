@@ -14,12 +14,64 @@
 
 ## 概要
 
+研究室メンバーの **いま誰がいるか** と **作業中かどうか** を、同じサーバー上の API で共有するシステムです。  
+ブラウザ（Web）、VS Code / Cursor 拡張（lab-tools）、スマートフォンのショートカットから同じ在室・作業データにアクセスします。
+
+認証は **Sign in with Slack**（Web）と、拡張／ショートカット向けの **共有 APIキー + メンバー資格情報** を併用します。データは **PostgreSQL** に保存し、既定ではポート **`5000`** で待ち受けます。学外からは **Cloudflare Quick Tunnel**（`*.trycloudflare.com`）経由で公開できます。
+
 ### 主な機能
 
-- **在室** … 入室・退室、今日の在室一覧
-- **作業** … 在室中の作業開始・終了（拡張では編集操作に連動）
-- **メンバー** … Slack ログインによる登録・管理（Web）
-- **履歴** … 日別の在室・作業の確認（Web）
+| 機能 | 内容 | 主な入口 |
+|------|------|----------|
+| **在室** | 入室・退室、今日の在室一覧、詳細ダイアログ | Web / 拡張 / スマホショートカット |
+| **作業** | 在室中の作業開始・終了（拡張では編集操作に連動可） | Web / 拡張 |
+| **メンバー** | Slack ログイン後の自己登録、一覧・編集、管理者／一般 | Web |
+| **履歴** | 日別の在室・作業の確認 | Web |
+
+### 画面のイメージ
+
+スクショ用モック（いま基準で在室／作業の状態を入れ直す）:
+
+```powershell
+.\.venv\Scripts\python.exe tools\seed_screenshot_mock.py
+```
+
+下の枠はプレースホルダ（`docs/images/*.svg`）です。撮影後は **同名・png または gif** に差し替え、必要なら拡張子だけ README を合わせてください。
+
+#### 1. 今日の研究室（Web）
+
+<p align="center">
+  <img src="docs/images/web-attendance.png" alt="今日の在室一覧。在室・作業・退室が混在するボード" width="920">
+</p>
+
+<p align="center">
+  <img src="docs/images/web-attendance-detail.png" alt="在室詳細ダイアログのタイムライン" width="360">
+</p>
+
+#### 2. エディタから使う（lab-tools）
+
+<p align="center">
+  <img src="docs/images/extension-sidebar.png" alt="lab-tools サイドバー" width="20%">
+  &nbsp;&nbsp;&nbsp;
+  <img src="docs/images/extension-settings.png" alt="lab-tools 接続設定" width="60%">
+</p>
+
+<p align="center">
+  <img src="docs/images/extension-flow.gif" alt="入室から作業中になる流れの短い録画" width="720">
+</p>
+
+### 想定環境
+
+研究室マシンにサーバーを置き、同じ LAN（またはトンネル経由）のメンバーが使う運用を想定しています。
+
+| 区分 | 想定 |
+|------|------|
+| **サーバー OS** | **Windows 10 / 11**（付属スクリプトは PowerShell 5.1+） |
+| **ランタイム** | **Python 3**（`venv` / `.venv` 推奨）＋ `requirements.txt` |
+| **DB** | **PostgreSQL**（既定ポート `5432`。`DATABASE_URL` で接続） |
+| **認証・通知** | Slack アプリ（Sign in with Slack + Bot Token） |
+| **エディタ拡張** | **VS Code** または **Cursor**（`engines.vscode` ^1.80.0） |
+| **スマホ入退室** | **iPhone** ショートカット＋Wi‑Fi オートメーション（Android は各自アプリで同等を構築） |
 
 ### 構成
 
@@ -30,12 +82,12 @@ lab-management/
   vscode-extension/       … lab-tools（VS Code / Cursor 拡張）
   scripts/                … 起動・停止・DB 初期化（PowerShell）
   docs/                   … セットアップ手順書
+  tools/                  … cloudflared 等の手元配置先（任意）
   .env.example            … 環境変数のひな形
 ```
 
-- アプリの既定ポート: **`5000`**
-- 起動例: `.\scripts\server-start.ps1`（任意で Cloudflare Quick Tunnel も起動）
-- データ: **PostgreSQL**
+- 起動例: `.\scripts\server-start.ps1`
+- 停止例: `.\scripts\server-stop.ps1`
 
 ### 利用者ごとの入り口
 
