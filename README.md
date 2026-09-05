@@ -30,14 +30,6 @@
 
 ### 画面のイメージ
 
-スクショ用モック（いま基準で在室／作業の状態を入れ直す）:
-
-```powershell
-.\.venv\Scripts\python.exe tools\seed_screenshot_mock.py
-```
-
-下の枠はプレースホルダ（`docs/images/*.svg`）です。撮影後は **同名・png または gif** に差し替え、必要なら拡張子だけ README を合わせてください。
-
 #### 1. 今日の研究室（Web）
 
 <p align="center">
