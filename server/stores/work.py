@@ -113,6 +113,9 @@ def end_work(username: str, password: str, *, end_at: Any = None) -> WorkResult:
     """
     作業セッションを終了する。
     end_at 省略時は now()。アイドル終了時はクライアントが最終操作時刻を渡す。
+
+    open なセッションがあればそれを閉じる。
+    無ければ（end_at 指定時のみ）最新セッションの end_at を書き換える。
     """
     parsed_end_at = _parse_end_at(end_at)
 
@@ -132,12 +135,33 @@ def end_work(username: str, password: str, *, end_at: Any = None) -> WorkResult:
                     (member_id,),
                 )
                 row = cur.fetchone()
+                rewritten = False
                 if not row:
-                    return {
-                        "ok": True,
-                        "ignored": True,
-                        "message": "作業中のセッションがありません",
-                    }
+                    # クラッシュ復帰などで、すでに閉じた最新セッションの終了時刻を補正する
+                    if parsed_end_at is None:
+                        return {
+                            "ok": True,
+                            "ignored": True,
+                            "message": "作業中のセッションがありません",
+                        }
+                    cur.execute(
+                        """
+                        SELECT id, start_at
+                        FROM work_sessions
+                        WHERE member_id = %s
+                        ORDER BY start_at DESC
+                        LIMIT 1
+                        """,
+                        (member_id,),
+                    )
+                    row = cur.fetchone()
+                    if not row:
+                        return {
+                            "ok": True,
+                            "ignored": True,
+                            "message": "作業セッションがありません",
+                        }
+                    rewritten = True
 
                 session_id = int(row[0])
                 start_at = _ensure_jst(row[1])
@@ -162,7 +186,11 @@ def end_work(username: str, password: str, *, end_at: Any = None) -> WorkResult:
                 return {
                     "ok": True,
                     "ignored": False,
-                    "message": "作業終了を記録しました",
+                    "message": (
+                        "作業終了時刻を更新しました"
+                        if rewritten
+                        else "作業終了を記録しました"
+                    ),
                 }
     except StoreError:
         raise
