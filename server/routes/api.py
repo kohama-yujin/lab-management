@@ -336,7 +336,10 @@ async def start_work(body: Annotated[dict[str, Any], Depends(require_api_key)]) 
 
 @api_router.post("/end_work")
 async def end_work(body: Annotated[dict[str, Any], Depends(require_api_key)]) -> dict[str, Any]:
-    """作業セッションの終了。end_at 省略時は現在時刻。"""
+    """
+    作業セッションの終了。end_at 省略時は現在時刻。
+    open が無ければ end_at 指定時のみ最新セッションの終了時刻を更新する。
+    """
     username = body.get("username")
     password = body.get("password")
 

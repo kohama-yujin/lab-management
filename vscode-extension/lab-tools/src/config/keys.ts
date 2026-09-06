@@ -19,4 +19,10 @@ export const SecretKeys = {
 /** 初回未設定トーストを抑制するための globalState キー */
 export const GlobalStateKeys = {
 	setupToastDismissed: `${CONFIG_SECTION}.setupToastDismissed`,
+	/** 最終操作時刻チェックポイント（Settings Sync しない） */
+	workActivityCheckpoint: `${CONFIG_SECTION}.workActivityCheckpoint`,
+	/** 他ウィンドウ生存のハートビート（Settings Sync しない） */
+	extensionAliveAt: `${CONFIG_SECTION}.extensionAliveAt`,
+	/** 起動ブートストラップの短時間ロック */
+	bootstrapLockAt: `${CONFIG_SECTION}.bootstrapLockAt`,
 } as const;
