@@ -1,9 +1,25 @@
-# Change Log
+# Changelog
 
-All notable changes to the "lab-tools" extension will be documented in this file.
+このファイルには lab-tools 拡張の主な変更を記録します。
 
-Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
+形式は [Keep a Changelog](https://keepachangelog.com/ja/1.1.0/) に従います。
+バージョン番号は [Semantic Versioning](https://semver.org/lang/ja/) に従います。
 
 ## [Unreleased]
 
-- Initial release
+## [1.1.0] - 2026-09-06
+
+### Changed
+
+- エディタ起動時に前回の最終操作時刻で作業を締め、入室・作業開始する起動ブートストラップを追加した
+- 他ウィンドウが生存中のときは、起動ブートストラップをスキップしてセッション分割を防ぐようにした
+
+### Fixed
+
+- 強制終了やシャットダウン後も、起動時に最終操作時刻で作業終了時刻を補正できるようにした
+
+## [1.0.0] - 2026-08-31
+
+### Added
+
+- 初回リリース（在室状況の表示、入退室、自動入室、作業記録、接続設定）
