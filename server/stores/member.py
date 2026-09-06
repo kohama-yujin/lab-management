@@ -255,6 +255,30 @@ def fetch_slack_user_id_by_member_id(member_id: int) -> str | None:
             return value or None
 
 
+def fetch_all_slack_user_ids() -> list[str]:
+    """
+    slack_user_id が設定されている全メンバーの ID を返す。
+    重複は除き、安定のため ID 昇順。
+    """
+    with connect() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT DISTINCT slack_user_id
+                FROM members
+                WHERE slack_user_id IS NOT NULL
+                  AND TRIM(slack_user_id) <> ''
+                ORDER BY slack_user_id
+                """
+            )
+            ids: list[str] = []
+            for row in cur.fetchall():
+                value = str(row[0]).strip()
+                if value:
+                    ids.append(value)
+            return ids
+
+
 def fetch_member_by_slack_user_id(slack_user_id: str) -> MemberItem | None:
     """Slack ユーザー ID からメンバーを取得する。"""
     normalized = (slack_user_id or "").strip()

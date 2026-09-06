@@ -1,6 +1,6 @@
-# VS Code 拡張（lab-tools）導入手順
+# VS Code 拡張（Lab Tools）導入手順
 
-lab-management のクライアントとして、VS Code / Cursor 向け拡張 **lab-tools**（`vscode-extension/lab-tools`）を使います。  
+lab-management のクライアントとして、VS Code / Cursor 向け拡張 **Lab Tools**（パッケージ ID: `lab-tools`、配置: `vscode-extension/lab-tools`）を使います。  
 在室状況の表示・入退室・作業記録を、エディタのサイドバー／ステータスバーから操作できます。
 
 このドキュメントでは **拡張の導入方法** をまとめます。
@@ -66,13 +66,36 @@ npm run compile
   （リポジトリルートではなく、拡張のフォルダを開く）
 2. `Ctrl+Shift+B` などでビルド（watch）が動いていることを確認する（初回は `npm install` 済みであること）
 3. **Run and Debug** から **「Run Extension」** を実行する（または `F5`）
-4. 「Extension Development Host」ウィンドウが開く → ここに lab-tools が読み込まれる
+4. 「Extension Development Host」ウィンドウが開く → ここに Lab Tools が読み込まれる
 
 `launch.json` は `preLaunchTask` で watch ビルドをかけてから Extension Host を起動します。
 
 ### 3.2 VSIX でインストールする（配布・常用向け）
 
 Marketplace 未公開のため、パッケージを作って手動インストールします。
+
+#### 管理者: ビルドして Slack DM で配布する（推奨）
+
+`package.json` の version と `CHANGELOG.md` を更新したうえで、リポジトリルートから次を実行します。
+
+```powershell
+.\scripts\release-lab-tools.ps1
+```
+
+確認プロンプトのあと、`slack_user_id` 付きの全メンバーへ VSIX 付き DM が送られます。
+
+| オプション | 内容 |
+|------------|------|
+| `-SkipPackage` | 既存の `lab-tools-{version}.vsix` を通知だけする |
+| `-SkipNotify` | パッケージのみ作成し Slack 送信しない |
+| `-DryRun` | 送信先の確認のみ（送らない） |
+| `-Yes` | 送信前確認をスキップ |
+
+> PowerShell のスイッチは `-DryRun` です（`--dry-run` ではない）。
+
+Slack 側では Bot に `files:write` スコープが必要です（`docs/slack-app-setup.md`）。
+
+#### 手動でパッケージだけ作る
 
 ```powershell
 cd vscode-extension\lab-tools
@@ -96,8 +119,7 @@ Do you want to continue? [y/N] y
 ```
 
 > 対話を避けたい場合は  
-> `npx vsce package --allow-missing-repository`  
-> でも `repository` 側はスキップできます。LICENSE の確認は別途出ることがあります。
+> `npx vsce package --allow-missing-repository`
 
 生成された `lab-tools-*.vsix` は以下の手順でインストールできます。
 
