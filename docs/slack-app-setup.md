@@ -5,13 +5,15 @@ lab-management は **1 つの Slack アプリ** で次を行います。
 | 機能 | 用途 |
 |------|------|
 | **Sign in with Slack**（OpenID Connect） | Web ログイン。Slack ユーザー ID（`sub`）でメンバーを特定 |
-| **Bot（DM）** | 役職の一般↔管理者変更時、変更者へ Collaborator 手動追加／削除の案内を送る |
+| **Bot（DM）** | 役職の一般↔管理者変更時の Collaborator 案内、Lab Tools 拡張の VSIX 配布 DM |
 
 公式:
 
 - [Using Sign in with Slack](https://api.slack.com/authentication/sign-in-with-slack)
 - [chat.postMessage](https://docs.slack.dev/reference/methods/chat.postmessage)
 - [conversations.open](https://docs.slack.dev/reference/methods/conversations.open)
+- [files.getUploadURLExternal](https://docs.slack.dev/reference/methods/files.getUploadURLExternal)
+- [files.completeUploadExternal](https://docs.slack.dev/reference/methods/files.completeUploadExternal)
 
 ---
 
@@ -40,9 +42,7 @@ lab-management は **1 つの Slack アプリ** で次を行います。
 
 ---
 
-## 3. Bot を有効にし、DM 用スコープを追加する
-
-役職変更時の案内 DM に必要です。
+## 3. Bot を有効にし、DM / ファイル用スコープを追加する
 
 1. 左メニュー **OAuth & Permissions** を開く
 2. **ボットトークンのスコープ** を探し、**OAuth スコープを追加する** から次を追加する
@@ -50,7 +50,8 @@ lab-management は **1 つの Slack アプリ** で次を行います。
 | Scope | 用途 |
 |-------|------|
 | `chat:write` | DM にメッセージを送る（`chat.postMessage`） |
-| `im:write` | 変更者との DM を開く（`conversations.open`） |
+| `im:write` | メンバーとの DM を開く（`conversations.open`） |
+| `files:write` | ファイル を DM に添付する（`files.getUploadURLExternal` / `files.completeUploadExternal`） |
 
 3. ページ上部の **Install to Workspace**（または **Reinstall to Workspace**）を実行し、許可する
 4. 表示された **OAuth Tokens** 内の **Bot User OAuth Token**（`xoxb-…` で始まる）を控える  
@@ -75,7 +76,7 @@ SLACK_APP_ID=A012ABCDEF
 
 SLACK_REDIRECT_URI=http://サーバーIP:ポート/auth/slack/callback
 
-# Bot（役職変更時の Collaborator 案内 DM）
+# Bot（DM）
 SLACK_BOT_TOKEN=xoxb-...
 
 # DB seed 用の初期管理者（Slack メンバー ID）

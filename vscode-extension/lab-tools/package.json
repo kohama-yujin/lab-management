@@ -1,6 +1,6 @@
 {
   "name": "lab-tools",
-  "displayName": "lab-tools",
+  "displayName": "Lab Tools",
   "description": "研究室向けの在室管理・作業記録ツール",
   "version": "1.1.0",
   "publisher": "kohama-yujin",

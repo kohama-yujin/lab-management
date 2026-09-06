@@ -15,7 +15,7 @@
 ## 概要
 
 研究室メンバーの **いま誰がいるか** と **作業中かどうか** を、同じサーバー上の API で共有するシステムです。  
-ブラウザ（Web）、VS Code / Cursor 拡張（lab-tools）、スマートフォンのショートカットから同じ在室・作業データにアクセスします。
+ブラウザ（Web）、VS Code / Cursor 拡張（Lab Tools）、スマートフォンのショートカットから同じ在室・作業データにアクセスします。
 
 認証は **Sign in with Slack**（Web）と、拡張／ショートカット向けの **共有 APIキー + メンバー資格情報** を併用します。データは **PostgreSQL** に保存し、既定ではポート **`5000`** で待ち受けます。学外からは **Cloudflare Quick Tunnel**（`*.trycloudflare.com`）経由で公開できます。
 
@@ -40,12 +40,12 @@
   <img src="docs/images/web-attendance-detail.png" alt="在室詳細ダイアログのタイムライン" width="360">
 </p>
 
-#### 2. エディタから使う（lab-tools）
+#### 2. エディタから使う（Lab Tools）
 
 <p align="center">
-  <img src="docs/images/extension-sidebar.png" alt="lab-tools サイドバー" width="20%">
+  <img src="docs/images/extension-sidebar.png" alt="Lab Tools サイドバー" width="20%">
   &nbsp;&nbsp;&nbsp;
-  <img src="docs/images/extension-settings.png" alt="lab-tools 接続設定" width="60%">
+  <img src="docs/images/extension-settings.png" alt="Lab Tools 接続設定" width="60%">
 </p>
 
 <p align="center">
@@ -71,7 +71,7 @@
 lab-management/
   server/                 … FastAPI（API・認証・DB アクセス）
   client/                 … Web UI（在室・メンバー・履歴）
-  vscode-extension/       … lab-tools（VS Code / Cursor 拡張）
+  vscode-extension/       … Lab Tools（VS Code / Cursor 拡張）
   scripts/                … 起動・停止・DB 初期化（PowerShell）
   docs/                   … セットアップ手順書
   tools/                  … cloudflared 等の手元配置先（任意）
@@ -86,7 +86,7 @@ lab-management/
 | 利用者 | 使うもの | 詳細ドキュメント |
 |--------|----------|------------------|
 | 全員（Web） | ブラウザでサーバー URL を開く | Slack ログインは管理者が用意したアプリを利用 |
-| エディタ利用者 | lab-tools 拡張 | [vscode-extension/lab-tools/README.md](./vscode-extension/lab-tools/README.md) |
+| エディタ利用者 | Lab Tools 拡張 | [vscode-extension/lab-tools/README.md](./vscode-extension/lab-tools/README.md) |
 | スマホ利用者 | ショートカット＋Wi‑Fi オートメーション | [docs/attendance-shortcuts-setup.md](./docs/attendance-shortcuts-setup.md) |
 | サーバー管理者 | DB・Slack・トンネル・拡張の配布 | 下の [サーバー管理者向け](#サーバー管理者向け) |
 
@@ -148,7 +148,7 @@ lab-management/
 
 ログインできない場合は、管理者に Slack アプリ／Redirect URL／自分のメンバー登録を確認してもらってください。
 
-### VS Code / Cursor 拡張（lab-tools）
+### VS Code / Cursor 拡張（Lab Tools）
 
 在室一覧・入退室・作業記録をエディタから使います。
 
